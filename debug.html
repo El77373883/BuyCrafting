@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuyCrafting - Debug</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: monospace; background: #0a0e1a; color: #0f0; padding: 20px; }
+    .log { margin: 10px 0; padding: 10px; background: #1e293b; border-radius: 8px; }
+    .error { color: #f66; }
+    .success { color: #6f6; }
+  </style>
+</head>
+<body>
+  <h2>🔧 BuyCrafting - Debug Console</h2>
+  <div id="logs"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://ylkrrcntsztytvsboypl.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsa3JyY250c3p0eXR2c2JveXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Nzc5ODUsImV4cCI6MjA5MDE1Mzk4NX0.Swo1mFTcvgEW0WhiS2Uu5zq7y_NIZ-2irsilubNH8OU'; // ← PON TU CLAVE ANON AQUÍ
+    
+    const log = (msg, type = '') => {
+      const div = document.createElement('div');
+      div.className = 'log ' + type;
+      div.innerText = msg;
+      document.getElementById('logs').appendChild(div);
+      console.log(msg);
+    };
+
+    log('🚀 Iniciando prueba...', 'info');
+    
+    try {
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      log('✅ Cliente Supabase creado', 'success');
+      
+      supabase.from('config').select('api_key').eq('id', 1).single()
+        .then(({ data, error }) => {
+          if (error) {
+            log('❌ Error consultando config: ' + error.message, 'error');
+          } else {
+            log('✅ Conexión exitosa!', 'success');
+            log('🔑 API Key en DB: ' + data.api_key, 'success');
+            log('➡️ Usa esta key para login: ' + data.api_key, 'info');
+          }
+        })
+        .catch(e => log('❌ Error de red: ' + e.message, 'error'));
+        
+    } catch (e) {
+      log('❌ Error fatal: ' + e.message, 'error');
+    }
+  </script>
+</body>
+</html>
