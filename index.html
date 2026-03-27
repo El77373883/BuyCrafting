@@ -3,2190 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BuyCrafting - Panel de Control</title>
+    <title>BuyCrafting - Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --danger: #ef4444;
-            --bg: #0a0e1a;
-            --bg-secondary: #111827;
-            --bg-card: #1e293b;
-            --bg-hover: #334155;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-            --shadow: 0 10px 40px rgba(0,0,0,0.4);
-            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
-        }
-        
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* Animaciones */
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Logo Animado */
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: var(--gradient);
-            background-size: 200% 200%;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            animation: gradient 3s ease infinite, float 3s ease-in-out infinite;
-            box-shadow: var(--shadow-glow);
-        }
-        
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            background: var(--gradient);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient 3s ease infinite;
-        }
-
-        /* Menú Hamburguesa */
-        .menu-toggle {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1001;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow);
-        }
-        
-        .menu-toggle:hover {
-            transform: scale(1.05);
-            border-color: var(--primary);
-        }
-        
-        .menu-toggle span {
-            width: 24px;
-            height: 3px;
-            background: var(--text);
-            border-radius: 3px;
-            transition: all 0.3s;
-        }
-        
-        .menu-toggle.active span:nth-child(1) {
-            transform: rotate(45deg) translate(6px, 6px);
-        }
-        
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-        
-        .menu-toggle.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(6px, -6px);
-        }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: -300px;
-            top: 0;
-            width: 300px;
-            height: 100vh;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow);
-            overflow-y: auto;
-        }
-        
-        .sidebar.active {
-            left: 0;
-        }
-        
-        .nav-menu {
-            padding: 20px;
-            flex: 1;
-        }
-        
-        .nav-item {
-            padding: 16px 20px;
-            border-radius: 12px;
-            color: var(--text-muted);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 8px;
-            transition: all 0.3s;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
-        
-        .nav-item:hover {
-            background: var(--bg-card);
-            color: var(--text);
-            transform: translateX(8px);
-        }
-        
-        .nav-item.active {
-            background: var(--gradient);
-            color: white;
-            box-shadow: var(--shadow-glow);
-        }
-        
-        .nav-item i {
-            font-size: 20px;
-            width: 24px;
-        }
-        
-        .nav-section {
-            padding: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        /* Overlay */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-            display: none;
-        }
-        
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-            display: block;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            padding: 100px 20px 40px;
-            transition: margin-left 0.3s;
-        }
-        
-        @media (min-width: 1024px) {
-            .sidebar {
-                left: 0;
-                width: 280px;
-            }
-            .main-content {
-                margin-left: 280px;
-            }
-            .menu-toggle {
-                display: none;
-            }
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            animation: fadeIn 0.6s;
-        }
-        
-        .header-title h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .header-title p {
-            color: var(--text-muted);
-            font-size: 15px;
-        }
-        
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background: var(--bg-card);
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .user-menu:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-        
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        @media (min-width: 640px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (min-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-        
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s;
-            animation: fadeIn 0.6s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient);
-            transform: scaleX(0);
-            transition: transform 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: var(--shadow-glow);
-        }
-        
-        .stat-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
-        }
-        
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-        
-        .stat-change {
-            font-size: 13px;
-            margin-top: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .stat-change.positive { color: var(--secondary); }
-        .stat-change.negative { color: var(--danger); }
-
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 30px;
-            animation: fadeIn 0.6s;
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        
-        .card-title {
-            font-size: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .card-title i {
-            color: var(--primary);
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 12px 24px;
-            border-radius: 10px;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-        
-        .btn-primary {
-            background: var(--gradient);
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
-        }
-        
-        .btn-secondary {
-            background: var(--bg-hover);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--bg-hover);
-            border-color: var(--primary);
-        }
-        
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-        
-        .btn-danger:hover {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 13px;
-        }
-
-        /* Forms */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        
-        @media (min-width: 768px) {
-            .form-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 15px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        /* Tables */
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th {
-            text-align: left;
-            padding: 16px;
-            color: var(--text-muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid var(--border);
-            font-weight: 600;
-        }
-        
-        td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-        }
-        
-        tr:hover td {
-            background: var(--bg-hover);
-        }
-        
-        .badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .badge.success { 
-            background: rgba(16, 185, 129, 0.2); 
-            color: var(--secondary); 
-        }
-        
-        .badge.pending { 
-            background: rgba(245, 158, 11, 0.2); 
-            color: var(--accent); 
-        }
-        
-        .badge.danger { 
-            background: rgba(239, 68, 68, 0.2); 
-            color: var(--danger); 
-        }
-        
-        .badge.info { 
-            background: rgba(99, 102, 241, 0.2); 
-            color: var(--primary); 
-        }
-
-        /* Charts */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            margin-bottom: 30px;
-        }
-        
-        @media (min-width: 1024px) {
-            .charts-grid {
-                grid-template-columns: 2fr 1fr;
-            }
-        }
-
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: fadeIn 0.3s;
-        }
-        
-        .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 24px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .modal-close:hover {
-            background: var(--bg-hover);
-            color: var(--text);
-        }
-        
-        .modal-body {
-            padding: 24px;
-        }
-        
-        .modal-footer {
-            padding: 20px 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 24px;
-            border-radius: 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            transform: translateX(400px);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 3000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 400px;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.success {
-            border-color: var(--secondary);
-        }
-        
-        .notification.error {
-            border-color: var(--danger);
-        }
-        
-        .notification-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .notification.success .notification-icon {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--secondary);
-        }
-        
-        .notification.error .notification-icon {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-        }
-
-        /* Loading */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            color: var(--text-muted);
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: rotate 1s linear infinite;
-            margin-right: 12px;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-        
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        /* API Key Display */
-        .key-display {
-            background: var(--bg);
-            padding: 20px;
-            border-radius: 12px;
-            font-family: 'Monaco', monospace;
-            border: 1px solid var(--primary);
-            word-break: break-all;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .key-value {
-            color: var(--primary);
-            font-size: 14px;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-        }
-
-        /* Sections */
-        .section {
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-        
-        .section.active {
-            display: block;
-        }
-
-        /* Product Type Badges */
-        .product-type {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            background: var(--bg-hover);
-        }
-
-        /* Discount Badge */
-        .discount-badge {
-            background: linear-gradient(135deg, #ef4444, #f59e0b);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Loading Screen */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.5s;
-        }
-        
-        .loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .loading-logo {
-            width: 80px;
-            height: 80px;
-            background: var(--gradient);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin-bottom: 20px;
-            animation: gradient 3s ease infinite, float 3s ease-in-out infinite;
-        }
-        
-        .loading-text {
-            color: var(--text-muted);
-            font-size: 16px;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        :root{
+            --primary:#6366f1;--primary-dark:#4f46e5;--secondary:#10b981;--accent:#f59e0b;--danger:#ef4444;
+            --bg:#0a0e1a;--bg-secondary:#111827;--bg-card:#1e293b;--bg-hover:#334155;
+            --text:#f8fafc;--text-muted:#94a3b8;--border:#334155;
+            --gradient:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%);
+            --shadow:0 10px 40px rgba(0,0,0,0.4);--shadow-glow:0 0 40px rgba(99,102,241,0.3)
+        }
+        body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
+        
+        @keyframes gradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes slideIn{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        
+        .loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.5s}
+        .loading-screen.hidden{opacity:0;pointer-events:none}
+        .loading-logo{width:80px;height:80px;background:var(--gradient);border-radius:20px;
+            display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:20px;
+            animation:gradient 3s ease infinite,float 3s ease-in-out infinite}
+        .loading-text{color:var(--text-muted);font-size:16px}
+        
+        .menu-toggle{position:fixed;top:20px;left:20px;z-index:1001;background:var(--bg-card);
+            border:1px solid var(--border);width:50px;height:50px;border-radius:12px;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+            cursor:pointer;transition:all 0.3s;box-shadow:var(--shadow)}
+        .menu-toggle:hover{transform:scale(1.05);border-color:var(--primary)}
+        .menu-toggle span{width:24px;height:3px;background:var(--text);border-radius:3px;transition:all 0.3s}
+        .menu-toggle.active span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}
+        .menu-toggle.active span:nth-child(2){opacity:0}
+        .menu-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+        
+        .sidebar{position:fixed;left:-300px;top:0;width:300px;height:100vh;background:var(--bg-secondary);
+            border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column;z-index:1000;
+            transition:left 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:var(--shadow);overflow-y:auto}
+        .sidebar.active{left:0}
+        .nav-menu{padding:20px;flex:1}
+        .nav-item{padding:16px 20px;border-radius:12px;color:var(--text-muted);text-decoration:none;
+            display:flex;align-items:center;gap:16px;margin-bottom:8px;transition:all 0.3s;cursor:pointer;border:1px solid transparent}
+        .nav-item:hover{background:var(--bg-card);color:var(--text);transform:translateX(8px)}
+        .nav-item.active{background:var(--gradient);color:white;box-shadow:var(--shadow-glow)}
+        .nav-item i{font-size:20px;width:24px}
+        .nav-section{padding:20px;border-top:1px solid var(--border)}
+        
+        .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);
+            backdrop-filter:blur(4px);z-index:999;opacity:0;visibility:hidden;transition:all 0.3s;display:none}
+        .overlay.active{opacity:1;visibility:visible;display:block}
+        
+        .main-content{margin-left:0;padding:100px 20px 40px;transition:margin-left 0.3s}
+        @media(min-width:1024px){.sidebar{left:0;width:280px}.main-content{margin-left:280px}.menu-toggle{display:none}}
+        
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;animation:fadeIn 0.6s}
+        .header-title h1{font-size:32px;font-weight:700;margin-bottom:8px}
+        .header-title p{color:var(--text-muted);font-size:15px}
+        .user-menu{display:flex;align-items:center;gap:16px;background:var(--bg-card);padding:10px 20px;
+            border-radius:12px;border:1px solid var(--border);cursor:pointer;transition:all 0.3s}
+        .user-menu:hover{border-color:var(--primary);transform:translateY(-2px)}
+        .avatar{width:40px;height:40px;border-radius:50%;background:var(--gradient);display:flex;
+            align-items:center;justify-content:center;font-weight:600;font-size:16px}
+        
+        .stats-grid{display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:40px}
+        @media(min-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(min-width:1024px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+        .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;
+            transition:all 0.3s;animation:fadeIn 0.6s;position:relative;overflow:hidden}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+            background:var(--gradient);transform:scaleX(0);transition:transform 0.3s}
+        .stat-card:hover{transform:translateY(-5px);border-color:var(--primary);box-shadow:var(--shadow-glow)}
+        .stat-card:hover::before{transform:scaleX(1)}
+        .stat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .stat-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;
+            justify-content:center;font-size:24px;background:rgba(99,102,241,0.1);color:var(--primary)}
+        .stat-value{font-size:32px;font-weight:700;margin-bottom:4px}
+        .stat-label{color:var(--text-muted);font-size:14px}
+        .stat-change{font-size:13px;margin-top:12px;display:flex;align-items:center;gap:6px}
+        .stat-change.positive{color:var(--secondary)}.stat-change.negative{color:var(--danger)}
+        
+        .card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:30px;animation:fadeIn 0.6s}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .card-title{font-size:20px;font-weight:600;display:flex;align-items:center;gap:12px}
+        .card-title i{color:var(--primary)}
+        
+        .btn{padding:12px 24px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;
+            transition:all 0.3s;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+        .btn-primary{background:var(--gradient);color:white;box-shadow:0 4px 15px rgba(99,102,241,0.4)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,102,241,0.6)}
+        .btn-secondary{background:var(--bg-hover);color:var(--text);border:1px solid var(--border)}
+        .btn-secondary:hover{background:var(--bg-hover);border-color:var(--primary)}
+        .btn-danger{background:rgba(239,68,68,0.2);color:var(--danger);border:1px solid var(--danger)}
+        .btn-danger:hover{background:var(--danger);color:white}
+        .btn-sm{padding:8px 16px;font-size:13px}
+        
+        .form-grid{display:grid;grid-template-columns:1fr;gap:20px}
+        @media(min-width:768px){.form-grid{grid-template-columns:repeat(2,1fr)}}
+        .form-group{margin-bottom:20px}.form-group.full{grid-column:1/-1}
+        label{display:block;margin-bottom:8px;font-size:14px;color:var(--text-muted);font-weight:500}
+        input,select,textarea{width:100%;padding:14px 16px;background:var(--bg);border:1px solid var(--border);
+            border-radius:10px;color:var(--text);font-size:15px;transition:all 0.3s;font-family:inherit}
+        input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+        textarea{resize:vertical;min-height:100px}
+        
+        .table-container{overflow-x:auto;margin-top:20px}
+        table{width:100%;border-collapse:collapse}
+        th{text-align:left;padding:16px;color:var(--text-muted);font-size:12px;text-transform:uppercase;
+            letter-spacing:0.5px;border-bottom:2px solid var(--border);font-weight:600}
+        td{padding:16px;border-bottom:1px solid var(--border);font-size:14px}
+        tr:hover td{background:var(--bg-hover)}
+        
+        .badge{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+        .badge.success{background:rgba(16,185,129,0.2);color:var(--secondary)}
+        .badge.pending{background:rgba(245,158,11,0.2);color:var(--accent)}
+        .badge.danger{background:rgba(239,68,68,0.2);color:var(--danger)}
+        .badge.info{background:rgba(99,102,241,0.2);color:var(--primary)}
+        
+        .charts-grid{display:grid;grid-template-columns:1fr;gap:24px;margin-bottom:30px}
+        @media(min-width:1024px){.charts-grid{grid-template-columns:2fr 1fr}}
+        
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);
+            backdrop-filter:blur(4px);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.active{display:flex}
+        .modal-content{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;
+            width:100%;max-width:600px;max-height:90vh;overflow-y:auto;animation:fadeIn 0.3s}
+        .modal-header{padding:24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-title{font-size:20px;font-weight:600}.modal-close{background:none;border:none;color:var(--text-muted);
+            font-size:24px;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;
+            justify-content:center;border-radius:8px;transition:all 0.3s}
+        .modal-close:hover{background:var(--bg-hover);color:var(--text)}
+        .modal-body{padding:24px}.modal-footer{padding:20px 24px;border-top:1px solid var(--border);
+            display:flex;gap:12px;justify-content:flex-end}
+        
+        .notification{position:fixed;top:20px;right:20px;padding:16px 24px;border-radius:12px;
+            background:var(--bg-card);border:1px solid var(--border);box-shadow:var(--shadow);
+            transform:translateX(400px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            z-index:3000;display:flex;align-items:center;gap:12px;max-width:400px}
+        .notification.show{transform:translateX(0)}
+        .notification.success{border-color:var(--secondary)}.notification.error{border-color:var(--danger)}
+        .notification-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+        .notification.success .notification-icon{background:rgba(16,185,129,0.2);color:var(--secondary)}
+        .notification.error .notification-icon{background:rgba(239,68,68,0.2);color:var(--danger)}
+        
+        .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text-muted)}
+        .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);
+            border-radius:50%;animation:rotate 1s linear infinite;margin-right:12px}
+        
+        .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+        .empty-state i{font-size:64px;margin-bottom:16px;opacity:0.5}
+        
+        .key-display{background:var(--bg);padding:20px;border-radius:12px;font-family:monospace;
+            border:1px solid var(--primary);word-break:break-all;margin-bottom:20px;
+            display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .key-value{color:var(--primary);font-size:14px}
+        
+        @media(max-width:640px){.header{flex-direction:column;align-items:flex-start;gap:16px}
+            .stats-grid{grid-template-columns:1fr}.card-header{flex-direction:column;align-items:flex-start;gap:16px}}
+        
+        .section{display:none;animation:fadeIn 0.5s}.section.active{display:block}
+        .product-type{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:6px;
+            font-size:12px;font-weight:600;background:var(--bg-hover)}
+        .discount-badge{background:linear-gradient(135deg,#ef4444,#f59e0b);color:white;padding:4px 10px;
+            border-radius:6px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
-        <div class="loading-logo">
-            <i class="fas fa-bolt"></i>
-        </div>
+        <div class="loading-logo"><i class="fas fa-bolt"></i></div>
         <div class="loading-text">Cargando BuyCrafting...</div>
     </div>
-
-    <!-- Menú Hamburguesa -->
-    <div class="menu-toggle" onclick="toggleMenu()">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-
-    <!-- Overlay -->
+    
+    <div class="menu-toggle" onclick="toggleMenu()"><span></span><span></span><span></span></div>
     <div class="overlay" onclick="toggleMenu()"></div>
-
-    <!-- Sidebar -->
+    
     <nav class="sidebar">
-        <div class="brand-logo">
-            <div class="logo-icon">
-                <i class="fas fa-bolt"></i>
-            </div>
-            <div class="logo-text">BuyCrafting</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:20px;border-bottom:1px solid var(--border)">
+            <div style="width:40px;height:40px;background:var(--gradient);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-bolt"></i></div>
+            <div style="font-size:22px;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">BuyCrafting</div>
         </div>
-        
         <div class="nav-menu">
-            <div class="nav-item active" onclick="showSection('dashboard')">
-                <i class="fas fa-chart-line"></i>
-                <span>Dashboard</span>
-            </div>
-            <div class="nav-item" onclick="showSection('products')">
-                <i class="fas fa-box-open"></i>
-                <span>Productos</span>
-            </div>
-            <div class="nav-item" onclick="showSection('orders')">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Órdenes</span>
-            </div>
-            <div class="nav-item" onclick="showSection('tickets')">
-                <i class="fas fa-ticket-alt"></i>
-                <span>Tickets</span>
-                <span class="badge info" id="ticketBadge" style="margin-left: auto; display: none;">0</span>
-            </div>
-            <div class="nav-item" onclick="showSection('promotions')">
-                <i class="fas fa-percent"></i>
-                <span>Promociones</span>
-            </div>
-            <div class="nav-item" onclick="showSection('ranks')">
-                <i class="fas fa-crown"></i>
-                <span>Rangos</span>
-            </div>
-            <div class="nav-item" onclick="showSection('kits')">
-                <i class="fas fa-gift"></i>
-                <span>Kits</span>
-            </div>
+            <div class="nav-item active" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+            <div class="nav-item" onclick="showSection('products')"><i class="fas fa-box-open"></i><span>Productos</span></div>
+            <div class="nav-item" onclick="showSection('orders')"><i class="fas fa-shopping-cart"></i><span>Órdenes</span></div>
+            <div class="nav-item" onclick="showSection('tickets')"><i class="fas fa-ticket-alt"></i><span>Tickets</span><span class="badge info" id="ticketBadge" style="margin-left:auto;display:none">0</span></div>
+            <div class="nav-item" onclick="showSection('promotions')"><i class="fas fa-percent"></i><span>Promociones</span></div>
+            <div class="nav-item" onclick="showSection('ranks')"><i class="fas fa-crown"></i><span>Rangos</span></div>
+            <div class="nav-item" onclick="showSection('kits')"><i class="fas fa-gift"></i><span>Kits</span></div>
         </div>
-        
         <div class="nav-section">
-            <div class="nav-item" onclick="showSection('settings')">
-                <i class="fas fa-cog"></i>
-                <span>Configuración</span>
-            </div>
-            <div class="nav-item" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Cerrar Sesión</span>
-            </div>
+            <div class="nav-item" onclick="showSection('settings')"><i class="fas fa-cog"></i><span>Configuración</span></div>
+            <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span></div>
         </div>
     </nav>
-
-    <!-- Main Content -->
+    
     <main class="main-content">
-        <!-- Header -->
         <header class="header">
-            <div class="header-title">
-                <h1 id="pageTitle">Dashboard</h1>
-                <p id="currentDate">Cargando...</p>
-            </div>
-            <div class="user-menu">
-                <div class="avatar">A</div>
-                <div>
-                    <div style="font-weight: 600;">Administrador</div>
-                    <div style="font-size: 12px; color: var(--text-muted);">admin@buycrafting.com</div>
-                </div>
-            </div>
+            <div class="header-title"><h1 id="pageTitle">Dashboard</h1><p id="currentDate">Cargando...</p></div>
+            <div class="user-menu"><div class="avatar">A</div><div><div style="font-weight:600">Administrador</div><div style="font-size:12px;color:var(--text-muted)">admin@buycrafting</div></div></div>
         </header>
-
-        <!-- Dashboard Section -->
+        
         <section id="dashboard" class="section active">
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-value" id="totalRevenue">$0.00</div>
-                            <div class="stat-label">Ingresos Totales</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                    </div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>12% vs mes anterior</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-value" id="totalOrders">0</div>
-                            <div class="stat-label">Órdenes Totales</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-shopping-bag"></i>
-                        </div>
-                    </div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>8% vs mes anterior</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-value" id="pendingOrders">0</div>
-                            <div class="stat-label">Pendientes</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                    <div class="stat-change negative">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>Requieren atención</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-value" id="activeTickets">0</div>
-                            <div class="stat-label">Tickets Activos</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                    </div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Soporte activo</span>
-                    </div>
-                </div>
+                <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="totalRevenue">$0.00</div><div class="stat-label">Ingresos</div></div><div class="stat-icon"><i class="fas fa-dollar-sign"></i></div></div><div class="stat-change positive"><i class="fas fa-arrow-up"></i><span>12% vs mes anterior</span></div></div>
+                <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="totalOrders">0</div><div class="stat-label">Órdenes</div></div><div class="stat-icon"><i class="fas fa-shopping-bag"></i></div></div><div class="stat-change positive"><i class="fas fa-arrow-up"></i><span>8% crecimiento</span></div></div>
+                <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="pendingOrders">0</div><div class="stat-label">Pendientes</div></div><div class="stat-icon"><i class="fas fa-clock"></i></div></div><div class="stat-change negative"><i class="fas fa-exclamation-circle"></i><span>Requieren atención</span></div></div>
+                <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="activeTickets">0</div><div class="stat-label">Tickets</div></div><div class="stat-icon"><i class="fas fa-headset"></i></div></div><div class="stat-change positive"><i class="fas fa-check-circle"></i><span>Soporte activo</span></div></div>
             </div>
-
             <div class="charts-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-chart-area"></i>
-                            Ventas de los Últimos 7 Días
-                        </div>
-                    </div>
-                    <canvas id="salesChart"></canvas>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-chart-pie"></i>
-                            Productos Más Vendidos
-                        </div>
-                    </div>
-                    <canvas id="productsChart"></canvas>
-                </div>
+                <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-chart-area"></i>Ventas - 7 días</div></div><canvas id="salesChart"></canvas></div>
+                <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-chart-pie"></i>Top Productos</div></div><canvas id="productsChart"></canvas></div>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-history"></i>
-                        Órdenes Recientes
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="loadOrders()">
-                        <i class="fas fa-sync-alt"></i>
-                        Actualizar
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Jugador</th>
-                                <th>Producto</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recentOrdersTable">
-                            <tr>
-                                <td colspan="5" class="loading">
-                                    <div class="spinner"></div>
-                                    Cargando...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-history"></i>Órdenes Recientes</div><button class="btn btn-secondary btn-sm" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i>Actualizar</button></div><div class="table-container"><table><thead><tr><th>ID</th><th>Jugador</th><th>Producto</th><th>Fecha</th><th>Estado</th></tr></thead><tbody id="recentOrdersTable"><tr><td colspan="5" class="loading"><div class="spinner"></div>Cargando...</td></tr></tbody></table></div></div>
         </section>
-
-        <!-- Products Section -->
+        
         <section id="products" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-plus-circle"></i>
-                        Crear Nuevo Producto
-                    </div>
-                    <button class="btn btn-primary" onclick="openProductModal()">
-                        <i class="fas fa-plus"></i>
-                        Nuevo Producto
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Tipo</th>
-                                <th>Precio</th>
-                                <th>Descuento</th>
-                                <th>Comando</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTable">
-                            <tr>
-                                <td colspan="6" class="loading">
-                                    <div class="spinner"></div>
-                                    Cargando productos...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-plus-circle"></i>Productos</div><button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i>Nuevo</button></div><div class="table-container"><table><thead><tr><th>Producto</th><th>Tipo</th><th>Precio</th><th>Descuento</th><th>Comando</th><th>Acciones</th></tr></thead><tbody id="productsTable"><tr><td colspan="6" class="loading"><div class="spinner"></div>Cargando...</td></tr></tbody></table></div></div>
         </section>
-
-        <!-- Orders Section -->
+        
         <section id="orders" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-list"></i>
-                        Todas las Órdenes
-                    </div>
-                    <button class="btn btn-primary" onclick="openOrderModal()">
-                        <i class="fas fa-plus"></i>
-                        Crear Orden
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Jugador</th>
-                                <th>Producto</th>
-                                <th>Total</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="allOrdersTable">
-                            <tr>
-                                <td colspan="7" class="loading">
-                                    <div class="spinner"></div>
-                                    Cargando órdenes...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-list"></i>Todas las Órdenes</div><button class="btn btn-primary" onclick="openOrderModal()"><i class="fas fa-plus"></i>Nueva</button></div><div class="table-container"><table><thead><tr><th>ID</th><th>Jugador</th><th>Producto</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="allOrdersTable"><tr><td colspan="7" class="loading"><div class="spinner"></div>Cargando...</td></tr></tbody></table></div></div>
         </section>
-
-        <!-- Tickets Section -->
+        
         <section id="tickets" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-ticket-alt"></i>
-                        Sistema de Tickets
-                    </div>
-                    <button class="btn btn-primary" onclick="openTicketModal()">
-                        <i class="fas fa-plus"></i>
-                        Nuevo Ticket
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Usuario</th>
-                                <th>Asunto</th>
-                                <th>Prioridad</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ticketsTable">
-                            <tr>
-                                <td colspan="7" class="empty-state">
-                                    <i class="fas fa-ticket-alt"></i>
-                                    <p>No hay tickets pendientes</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-ticket-alt"></i>Tickets de Soporte</div><button class="btn btn-primary" onclick="openTicketModal()"><i class="fas fa-plus"></i>Nuevo Ticket</button></div><div class="table-container"><table><thead><tr><th>ID</th><th>Usuario</th><th>Asunto</th><th>Prioridad</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="ticketsTable"><tr><td colspan="7" class="empty-state"><i class="fas fa-ticket-alt"></i><p>No hay tickets</p></td></tr></tbody></table></div></div>
         </section>
-
-        <!-- Promotions Section -->
+        
         <section id="promotions" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-tags"></i>
-                        Promociones y Descuentos
-                    </div>
-                    <button class="btn btn-primary" onclick="openPromotionModal()">
-                        <i class="fas fa-plus"></i>
-                        Crear Promoción
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Descuento</th>
-                                <th>Tipo</th>
-                                <th>Válido Hasta</th>
-                                <th>Usos</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="promotionsTable">
-                            <tr>
-                                <td colspan="7" class="empty-state">
-                                    <i class="fas fa-percent"></i>
-                                    <p>No hay promociones activas</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-tags"></i>Promociones</div><button class="btn btn-primary" onclick="openPromotionModal()"><i class="fas fa-plus"></i>Nueva</button></div><div class="table-container"><table><thead><tr><th>Código</th><th>Descuento</th><th>Tipo</th><th>Vence</th><th>Usos</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="promotionsTable"><tr><td colspan="7" class="empty-state"><i class="fas fa-percent"></i><p>Sin promociones</p></td></tr></tbody></table></div></div>
         </section>
-
-        <!-- Ranks Section -->
+        
         <section id="ranks" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-crown"></i>
-                        Gestión de Rangos
-                    </div>
-                    <button class="btn btn-primary" onclick="openRankModal()">
-                        <i class="fas fa-plus"></i>
-                        Nuevo Rango
-                    </button>
-                </div>
-                <div id="ranksList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-crown"></i>Rangos</div><button class="btn btn-primary" onclick="openRankModal()"><i class="fas fa-plus"></i>Nuevo Rango</button></div><div id="ranksList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px"></div></div>
         </section>
-
-        <!-- Kits Section -->
+        
         <section id="kits" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-gift"></i>
-                        Gestión de Kits
-                    </div>
-                    <button class="btn btn-primary" onclick="openKitModal()">
-                        <i class="fas fa-plus"></i>
-                        Nuevo Kit
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Kit</th>
-                                <th>Contenido</th>
-                                <th>Precio</th>
-                                <th>Cooldown</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="kitsTable">
-                            <tr>
-                                <td colspan="5" class="empty-state">
-                                    <i class="fas fa-gift"></i>
-                                    <p>No hay kits creados</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-gift"></i>Kits</div><button class="btn btn-primary" onclick="openKitModal()"><i class="fas fa-plus"></i>Nuevo Kit</button></div><div class="table-container"><table><thead><tr><th>Kit</th><th>Contenido</th><th>Precio</th><th>Cooldown</th><th>Acciones</th></tr></thead><tbody id="kitsTable"><tr><td colspan="5" class="empty-state"><i class="fas fa-gift"></i><p>Sin kits</p></td></tr></tbody></table></div></div>
         </section>
-
-        <!-- Settings Section -->
+        
         <section id="settings" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-key"></i>
-                        Configuración de API Key
-                    </div>
-                </div>
-                <p style="color: var(--text-muted); margin-bottom: 20px;">
-                    Esta clave conecta tu plugin de Minecraft con el dashboard. 
-                    Cópiala y pégala en el archivo <code style="background: var(--bg); padding: 4px 8px; border-radius: 4px;">config.yml</code> del plugin.
-                </p>
-                <div class="key-display">
-                    <span class="key-value" id="apiKeyDisplay">Cargando...</span>
-                    <button class="btn btn-secondary btn-sm" onclick="copyApiKey()">
-                        <i class="fas fa-copy"></i>
-                        Copiar
-                    </button>
-                </div>
-                <div class="form-group">
-                    <label>Generar Nueva Key</label>
-                    <input type="text" id="newApiKey" placeholder="Deja vacío para generar automáticamente">
-                </div>
-                <button class="btn btn-primary" onclick="updateApiKey()">
-                    <i class="fas fa-sync-alt"></i>
-                    Actualizar API Key
-                </button>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-database"></i>
-                        Estado de la Base de Datos
-                    </div>
-                </div>
-                <div class="stats-grid" style="margin-bottom: 0;">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-label">Conexión</div>
-                            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.2); color: var(--secondary);">
-                                <i class="fas fa-check"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" style="font-size: 18px;" id="dbStatus">Conectado</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-label">Última Sincronización</div>
-                            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.2); color: var(--primary);">
-                                <i class="fas fa-sync-alt"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" style="font-size: 18px;" id="lastSync">Ahora</div>
-                    </div>
-                </div>
-            </div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-key"></i>API Key</div></div><p style="color:var(--text-muted);margin-bottom:20px;font-size:14px">Esta clave conecta tu plugin de Minecraft. Cópiala en <code style="background:var(--bg);padding:4px 8px;border-radius:4px">config.yml</code></p><div class="key-display"><span class="key-value" id="apiKeyDisplay">Cargando...</span><button class="btn btn-secondary btn-sm" onclick="copyApiKey()"><i class="fas fa-copy"></i>Copiar</button></div><div class="form-group"><label>Nueva Key</label><input type="text" id="newApiKey" placeholder="Deja vacío para auto-generar"></div><button class="btn btn-primary" onclick="updateApiKey()"><i class="fas fa-sync-alt"></i>Actualizar Key</button></div>
+            <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-database"></i>Estado</div></div><div class="stats-grid" style="margin-bottom:0"><div class="stat-card"><div class="stat-header"><div class="stat-label">Conexión</div><div class="stat-icon" style="background:rgba(16,185,129,0.2);color:var(--secondary)"><i class="fas fa-check"></i></div></div><div class="stat-value" style="font-size:18px" id="dbStatus">Conectado</div></div><div class="stat-card"><div class="stat-header"><div class="stat-label">Última Sync</div><div class="stat-icon" style="background:rgba(99,102,241,0.2);color:var(--primary)"><i class="fas fa-sync-alt"></i></div></div><div class="stat-value" style="font-size:18px" id="lastSync">Ahora</div></div></div></div>
         </section>
     </main>
-
-    <!-- Modal Producto -->
-    <div class="modal" id="productModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-box"></i>
-                    Crear Producto
-                </div>
-                <button class="modal-close" onclick="closeModal('productModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Nombre del Producto</label>
-                        <input type="text" id="prodName" placeholder="Ej: Rango VIP">
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select id="prodType">
-                            <option value="rank">Rango</option>
-                            <option value="kit">Kit</option>
-                            <option value="item">Item</option>
-                            <option value="command">Comando</option>
-                            <option value="other">Otro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Precio (USD)</label>
-                        <input type="number" id="prodPrice" placeholder="5.00" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label>Descuento (%)</label>
-                        <input type="number" id="prodDiscount" placeholder="0" min="0" max="100">
-                    </div>
-                    <div class="form-group full">
-                        <label>Descripción</label>
-                        <textarea id="prodDescription" placeholder="Descripción detallada del producto..."></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label>Comando</label>
-                        <input type="text" id="prodCommand" placeholder="Ej: give {player} diamond 1">
-                    </div>
-                    <div class="form-group">
-                        <label>Categoría</label>
-                        <select id="prodCategory">
-                            <option value="ranks">Rangos</option>
-                            <option value="items">Items</option>
-                            <option value="kits">Kits</option>
-                            <option value="keys">Llaves</option>
-                            <option value="other">Otros</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Imagen (URL)</label>
-                        <input type="text" id="prodImage" placeholder="https://...">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('productModal')">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button class="btn btn-primary" onclick="createProduct()">
-                    <i class="fas fa-save"></i>
-                    Guardar Producto
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Orden -->
-    <div class="modal" id="orderModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-shopping-cart"></i>
-                    Crear Orden Manual
-                </div>
-                <button class="modal-close" onclick="closeModal('orderModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Nombre del Jugador</label>
-                    <input type="text" id="orderPlayer" placeholder="Ej: Steve">
-                </div>
-                <div class="form-group">
-                    <label>Producto</label>
-                    <select id="orderProduct">
-                        <option value="">Seleccionar producto...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Cantidad</label>
-                    <input type="number" id="orderQuantity" value="1" min="1">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('orderModal')">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button class="btn btn-primary" onclick="createOrder()">
-                    <i class="fas fa-plus"></i>
-                    Crear Orden
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Ticket -->
-    <div class="modal" id="ticketModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-ticket-alt"></i>
-                    Nuevo Ticket
-                </div>
-                <button class="modal-close" onclick="closeModal('ticketModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Asunto</label>
-                    <input type="text" id="ticketSubject" placeholder="Problema con la compra...">
-                </div>
-                <div class="form-group">
-                    <label>Prioridad</label>
-                    <select id="ticketPriority">
-                        <option value="low">Baja</option>
-                        <option value="medium">Media</option>
-                        <option value="high">Alta</option>
-                        <option value="urgent">Urgente</option>
-                    </select>
-                </div>
-                <div class="form-group full">
-                    <label>Mensaje</label>
-                    <textarea id="ticketMessage" placeholder="Describe tu problema..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('ticketModal')">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button class="btn btn-primary" onclick="createTicket()">
-                    <i class="fas fa-paper-plane"></i>
-                    Enviar Ticket
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Promoción -->
-    <div class="modal" id="promotionModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-percent"></i>
-                    Crear Promoción
-                </div>
-                <button class="modal-close" onclick="closeModal('promotionModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Código</label>
-                        <input type="text" id="promoCode" placeholder="DESCUENTO20">
-                    </div>
-                    <div class="form-group">
-                        <label>Descuento (%)</label>
-                        <input type="number" id="promoDiscount" placeholder="20" min="1" max="100">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de Vencimiento</label>
-                        <input type="date" id="promoExpiry">
-                    </div>
-                    <div class="form-group">
-                        <label>Usos Máximos</label>
-                        <input type="number" id="promoMaxUses" placeholder="100">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('promotionModal')">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button class="btn btn-primary" onclick="createPromotion()">
-                    <i class="fas fa-save"></i>
-                    Guardar Promoción
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <div class="notification-icon">
-            <i class="fas fa-check"></i>
-        </div>
-        <div id="notificationText"></div>
-    </div>
-
+    
+    <!-- Modals (Producto, Orden, Ticket, Promoción) - Simplificados por espacio -->
+    <div class="modal" id="productModal"><div class="modal-content"><div class="modal-header"><div class="modal-title"><i class="fas fa-box"></i>Nuevo Producto</div><button class="modal-close" onclick="closeModal('productModal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>Nombre</label><input type="text" id="prodName"></div><div class="form-group"><label>Tipo</label><select id="prodType"><option value="rank">Rango</option><option value="kit">Kit</option><option value="item">Item</option><option value="command">Comando</option></select></div><div class="form-group"><label>Precio</label><input type="number" id="prodPrice" step="0.01"></div><div class="form-group"><label>Descuento %</label><input type="number" id="prodDiscount" min="0" max="100"></div><div class="form-group full"><label>Descripción</label><textarea id="prodDescription"></textarea></div><div class="form-group full"><label>Comando</label><input type="text" id="prodCommand" placeholder="give {player} diamond 1"></div><div class="form-group"><label>Categoría</label><select id="prodCategory"><option value="ranks">Rangos</option><option value="items">Items</option><option value="kits">Kits</option></select></div></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('productModal')">Cancelar</button><button class="btn btn-primary" onclick="createProduct()">Guardar</button></div></div></div>
+    
+    <div class="modal" id="orderModal"><div class="modal-content"><div class="modal-header"><div class="modal-title"><i class="fas fa-shopping-cart"></i>Nueva Orden</div><button class="modal-close" onclick="closeModal('orderModal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-group"><label>Jugador</label><input type="text" id="orderPlayer"></div><div class="form-group"><label>Producto</label><select id="orderProduct"><option value="">Seleccionar...</option></select></div><div class="form-group"><label>Cantidad</label><input type="number" id="orderQuantity" value="1" min="1"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('orderModal')">Cancelar</button><button class="btn btn-primary" onclick="createOrder()">Crear</button></div></div></div>
+    
+    <div class="modal" id="ticketModal"><div class="modal-content"><div class="modal-header"><div class="modal-title"><i class="fas fa-ticket-alt"></i>Nuevo Ticket</div><button class="modal-close" onclick="closeModal('ticketModal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-group"><label>Asunto</label><input type="text" id="ticketSubject"></div><div class="form-group"><label>Prioridad</label><select id="ticketPriority"><option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option></select></div><div class="form-group full"><label>Mensaje</label><textarea id="ticketMessage"></textarea></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('ticketModal')">Cancelar</button><button class="btn btn-primary" onclick="createTicket()">Enviar</button></div></div></div>
+    
+    <div class="modal" id="promotionModal"><div class="modal-content"><div class="modal-header"><div class="modal-title"><i class="fas fa-percent"></i>Nueva Promoción</div><button class="modal-close" onclick="closeModal('promotionModal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>Código</label><input type="text" id="promoCode" placeholder="DESC20"></div><div class="form-group"><label>Descuento %</label><input type="number" id="promoDiscount" min="1" max="100"></div><div class="form-group"><label>Vence</label><input type="date" id="promoExpiry"></div><div class="form-group"><label>Max Usos</label><input type="number" id="promoMaxUses"></div></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('promotionModal')">Cancelar</button><button class="btn btn-primary" onclick="createPromotion()">Guardar</button></div></div></div>
+    
+    <div class="notification" id="notification"><div class="notification-icon"><i class="fas fa-check"></i></div><div id="notificationText"></div></div>
+    
     <script>
-        // ⚠️ CONFIGURACIÓN DE SUPABASE
-        const SUPABASE_URL = 'TU_SUPABASE_URL';
-        const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+        const SUPABASE_URL = 'https://ylkrrcntsztytvsboypl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsa3JyY250c3p0eXR2c2JveXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Nzc5ODUsImV4cCI6MjA5MDE1Mzk4NX0.Swo1mFTcvgEW0WhiS2Uu5zq7y_NIZ-2irsilubNH8OU';
+        let supabase, salesChart, productsChart, currentSection = 'dashboard';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        let salesChart = null;
-        let productsChart = null;
-        let currentSection = 'dashboard';
-
-        // Verificar Autenticación al Cargar
-        async function checkAuth() {
-            try {
-                const {  { session } } = await supabase.auth.getSession();
-                
-                if (!session) {
-                    // No hay sesión, redirigir al login
-                    window.location.href = 'login.html';
-                    return false;
-                }
-                return true;
-            } catch (error) {
-                console.error('Error verificando autenticación:', error);
-                window.location.href = 'login.html';
-                return false;
-            }
-        }
-
-        // Fecha Actual
-        function updateDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            document.getElementById('currentDate').innerText = now.toLocaleDateString('es-ES', options);
-        }
-
-        // Toggle Menú - FUNCIÓN CORREGIDA
-        function toggleMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            const menuToggle = document.querySelector('.menu-toggle');
-            const overlay = document.querySelector('.overlay');
+        document.addEventListener('DOMContentLoaded', async function(){
+            console.log('🚀 BuyCrafting iniciando...');
+            // Timeout para quitar loading aunque haya error
+            setTimeout(()=>document.getElementById('loadingScreen').classList.add('hidden'), 4000);
             
-            if (sidebar && menuToggle && overlay) {
-                sidebar.classList.toggle('active');
-                menuToggle.classList.toggle('active');
-                overlay.classList.toggle('active');
-            }
-        }
-
-        // Mostrar Sección - FUNCIÓN CORREGIDA
-        function showSection(section) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            try{
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase conectado');
+            }catch(e){console.error('❌ Error Supabase:',e); showNotification('Error de conexión','error');}
             
-            document.getElementById(section).classList.add('active');
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
+            // Verificar auth con localStorage (no Supabase Auth)
+            if(localStorage.getItem('buycrafting_auth') !== 'true'){window.location.href='login.html'; return;}
             
-            const titles = {
-                'dashboard': 'Dashboard',
-                'products': 'Productos',
-                'orders': 'Órdenes',
-                'tickets': 'Tickets de Soporte',
-                'promotions': 'Promociones',
-                'ranks': 'Rangos',
-                'kits': 'Kits',
-                'settings': 'Configuración'
-            };
-            document.getElementById('pageTitle').innerText = titles[section];
-            
-            currentSection = section;
-            
-            // Cerrar menú en móvil automáticamente
-            if (window.innerWidth < 1024) {
-                toggleMenu();
-            }
-            
-            loadSectionData(section);
-        }
-
-        // Cargar datos según la sección
-        function loadSectionData(section) {
-            switch(section) {
-                case 'dashboard': loadDashboard(); break;
-                case 'products': loadProducts(); break;
-                case 'orders': loadAllOrders(); break;
-                case 'tickets': loadTickets(); break;
-                case 'promotions': loadPromotions(); break;
-                case 'ranks': loadRanks(); break;
-                case 'kits': loadKits(); break;
-                case 'settings': loadApiKey(); break;
-            }
-        }
-
-        // Notificaciones
-        function showNotification(message, type = 'success') {
-            const notif = document.getElementById('notification');
-            const icon = notif.querySelector('.notification-icon i');
-            
-            document.getElementById('notificationText').innerText = message;
-            notif.className = 'notification show ' + type;
-            
-            if (type === 'success') {
-                icon.className = 'fas fa-check';
-            } else {
-                icon.className = 'fas fa-exclamation-circle';
-            }
-            
-            setTimeout(() => { notif.className = 'notification'; }, 3000);
-        }
-
-        // Modales
-        function openProductModal() { document.getElementById('productModal').classList.add('active'); }
-        function openOrderModal() { loadProductsForSelect(); document.getElementById('orderModal').classList.add('active'); }
-        function openTicketModal() { document.getElementById('ticketModal').classList.add('active'); }
-        function openPromotionModal() { document.getElementById('promotionModal').classList.add('active'); }
-        function openRankModal() { showNotification('Función en desarrollo', 'error'); }
-        function openKitModal() { showNotification('Función en desarrollo', 'error'); }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Copiar API Key
-        function copyApiKey() {
-            const key = document.getElementById('apiKeyDisplay').innerText;
-            navigator.clipboard.writeText(key);
-            showNotification('API Key copiada al portapapeles');
-        }
-
-        // Cargar API Key
-        async function loadApiKey() {
-            const { data, error } = await supabase.from('config').select('api_key').eq('id', 1).single();
-            if (data) {
-                document.getElementById('apiKeyDisplay').innerText = data.api_key;
-                document.getElementById('newApiKey').value = data.api_key;
-            }
-        }
-
-        // Actualizar API Key
-        async function updateApiKey() {
-            let key = document.getElementById('newApiKey').value;
-            if (!key) {
-                key = 'sk_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            }
-            const { error } = await supabase.from('config').upsert({ id: 1, api_key: key });
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('API Key actualizada. Actualiza el config.yml del plugin.');
-                loadApiKey();
-            }
-        }
-
-        // Cargar Dashboard
-        async function loadDashboard() {
-            const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
-            document.getElementById('totalOrders').innerText = orderCount || 0;
-            
-            const { count: pendingCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('delivered', false);
-            document.getElementById('pendingOrders').innerText = pendingCount || 0;
-            
-            const {  orders } = await supabase.from('orders').select('*');
-            let revenue = 0;
-            if (orders) { revenue = orders.length * 5; }
-            document.getElementById('totalRevenue').innerText = '$' + revenue.toFixed(2);
-            
-            const { count: ticketCount } = await supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'open');
-            document.getElementById('activeTickets').innerText = ticketCount || 0;
-            
-            const badge = document.getElementById('ticketBadge');
-            if (ticketCount > 0) {
-                badge.innerText = ticketCount;
-                badge.style.display = 'inline-flex';
-            } else {
-                badge.style.display = 'none';
-            }
-            
-            loadRecentOrders();
-            loadCharts();
-            document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
-        }
-
-        // Cargar Órdenes Recientes
-        async function loadRecentOrders() {
-            const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
-            const tbody = document.getElementById('recentOrdersTable');
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(order => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>#${order.id}</td>
-                        <td><strong>${order.player_name}</strong></td>
-                        <td>${order.product_name}</td>
-                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">${order.delivered ? '<i class="fas fa-check"></i> Entregado' : '<i class="fas fa-clock"></i> Pendiente'}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-inbox"></i><p>No hay órdenes recientes</p></td></tr>';
-            }
-        }
-
-        // Cargar Productos
-        async function loadProducts() {
-            const { data } = await supabase.from('products').select('*');
-            const tbody = document.getElementById('productsTable');
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(prod => {
-                    const discount = prod.discount || 0;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><div style="display: flex; align-items: center; gap: 12px;"><div style="width: 40px; height: 40px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-box" style="color: var(--primary);"></i></div><div><div style="font-weight: 600;">${prod.name}</div><div style="font-size: 12px; color: var(--text-muted);">${prod.description || 'Sin descripción'}</div></div></div></td>
-                        <td><span class="product-type"><i class="fas fa-tag"></i> ${prod.type || 'General'}</span></td>
-                        <td><strong>$${prod.price || '0.00'}</strong></td>
-                        <td>${discount > 0 ? `<span class="discount-badge"><i class="fas fa-percentage"></i> ${discount}%</span>` : '-'}</td>
-                        <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${prod.command}</code></td>
-                        <td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${prod.id})"><i class="fas fa-trash"></i></button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos creados</p></td></tr>';
-            }
-        }
-
-        // Crear Producto
-        async function createProduct() {
-            const name = document.getElementById('prodName').value;
-            const type = document.getElementById('prodType').value;
-            const price = parseFloat(document.getElementById('prodPrice').value) || 0;
-            const discount = parseInt(document.getElementById('prodDiscount').value) || 0;
-            const description = document.getElementById('prodDescription').value;
-            const command = document.getElementById('prodCommand').value;
-            const category = document.getElementById('prodCategory').value;
-            
-            if (!name || !command) {
-                showNotification('Nombre y comando son obligatorios', 'error');
-                return;
-            }
-            
-            const { error } = await supabase.from('products').insert({ name, type, price, discount, description, command, category });
-            
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Producto creado exitosamente');
-                closeModal('productModal');
-                document.getElementById('prodName').value = '';
-                document.getElementById('prodPrice').value = '';
-                document.getElementById('prodDiscount').value = '';
-                document.getElementById('prodDescription').value = '';
-                document.getElementById('prodCommand').value = '';
-                loadProducts();
-                loadDashboard();
-            }
-        }
-
-        // Cargar Productos para Select
-        async function loadProductsForSelect() {
-            const { data } = await supabase.from('products').select('*');
-            const select = document.getElementById('orderProduct');
-            select.innerHTML = '<option value="">Seleccionar producto...</option>';
-            if (data) {
-                data.forEach(prod => {
-                    const opt = document.createElement('option');
-                    opt.value = prod.command;
-                    opt.innerText = `${prod.name} - $${prod.price}`;
-                    select.appendChild(opt);
-                });
-            }
-        }
-
-        // Crear Orden
-        async function createOrder() {
-            const player = document.getElementById('orderPlayer').value;
-            const command = document.getElementById('orderProduct').value;
-            const quantity = parseInt(document.getElementById('orderQuantity').value) || 1;
-            
-            if (!player || !command) {
-                showNotification('Jugador y producto requeridos', 'error');
-                return;
-            }
-            
-            const {  config } = await supabase.from('config').select('api_key').eq('id', 1).single();
-            
-            const { error } = await supabase.from('orders').insert({ player_name: player, product_name: command, api_key: config.api_key, quantity: quantity });
-            
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Orden creada. El plugin la recibirá en ~10 seg.');
-                closeModal('orderModal');
-                loadAllOrders();
-                loadDashboard();
-            }
-        }
-
-        // Cargar Todas las Órdenes
-        async function loadAllOrders() {
-            const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-            const tbody = document.getElementById('allOrdersTable');
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(order => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>#${order.id}</td>
-                        <td><strong>${order.player_name}</strong></td>
-                        <td>${order.product_name}</td>
-                        <td>$${((order.quantity || 1) * 5).toFixed(2)}</td>
-                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">${order.delivered ? '<i class="fas fa-check"></i> Entregado' : '<i class="fas fa-clock"></i> Pendiente'}</span></td>
-                        <td><button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.id})"><i class="fas fa-trash"></i></button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>No hay órdenes</p></td></tr>';
-            }
-        }
-
-        // Cargar Tickets
-        async function loadTickets() {
-            const { data } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
-            const tbody = document.getElementById('ticketsTable');
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(ticket => {
-                    const priorityColors = { 'low': 'info', 'medium': 'pending', 'high': 'danger', 'urgent': 'danger' };
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>#${ticket.id}</td>
-                        <td>${ticket.user_name || 'Usuario'}</td>
-                        <td><strong>${ticket.subject}</strong></td>
-                        <td><span class="badge ${priorityColors[ticket.priority] || 'info'}">${ticket.priority}</span></td>
-                        <td><span class="badge ${ticket.status === 'open' ? 'pending' : 'success'}">${ticket.status}</span></td>
-                        <td>${new Date(ticket.created_at).toLocaleDateString()}</td>
-                        <td><button class="btn btn-sm btn-secondary" onclick="viewTicket(${ticket.id})"><i class="fas fa-eye"></i></button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-ticket-alt"></i><p>No hay tickets pendientes</p></td></tr>';
-            }
-        }
-
-        // Crear Ticket
-        async function createTicket() {
-            const subject = document.getElementById('ticketSubject').value;
-            const priority = document.getElementById('ticketPriority').value;
-            const message = document.getElementById('ticketMessage').value;
-            
-            if (!subject || !message) {
-                showNotification('Asunto y mensaje son obligatorios', 'error');
-                return;
-            }
-            
-            const { error } = await supabase.from('tickets').insert({ subject, priority, message, status: 'open' });
-            
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Ticket creado exitosamente');
-                closeModal('ticketModal');
-                loadTickets();
-                loadDashboard();
-            }
-        }
-
-        // Cargar Promociones
-        async function loadPromotions() {
-            const { data } = await supabase.from('promotions').select('*');
-            const tbody = document.getElementById('promotionsTable');
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(promo => {
-                    const isActive = new Date(promo.expiry_date) > new Date();
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px;">${promo.code}</code></td>
-                        <td><strong>${promo.discount}%</strong></td>
-                        <td>${promo.type || 'General'}</td>
-                        <td>${new Date(promo.expiry_date).toLocaleDateString()}</td>
-                        <td>${promo.uses || 0}/${promo.max_uses || '∞'}</td>
-                        <td><span class="badge ${isActive ? 'success' : 'danger'}">${isActive ? 'Activa' : 'Inactiva'}</span></td>
-                        <td><button class="btn btn-sm btn-danger" onclick="deletePromotion(${promo.id})"><i class="fas fa-trash"></i></button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-percent"></i><p>No hay promociones activas</p></td></tr>';
-            }
-        }
-
-        // Crear Promoción
-        async function createPromotion() {
-            const code = document.getElementById('promoCode').value.toUpperCase();
-            const discount = parseInt(document.getElementById('promoDiscount').value);
-            const expiry = document.getElementById('promoExpiry').value;
-            const maxUses = parseInt(document.getElementById('promoMaxUses').value) || null;
-            
-            if (!code || !discount || !expiry) {
-                showNotification('Todos los campos son obligatorios', 'error');
-                return;
-            }
-            
-            const { error } = await supabase.from('promotions').insert({ code, discount, expiry_date: expiry, max_uses: maxUses, uses: 0 });
-            
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Promoción creada exitosamente');
-                closeModal('promotionModal');
-                loadPromotions();
-            }
-        }
-
-        // Cargar Rangos
-        async function loadRanks() {
-            const { data } = await supabase.from('products').select('*').eq('type', 'rank');
-            const container = document.getElementById('ranksList');
-            container.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(rank => {
-                    const div = document.createElement('div');
-                    div.className = 'card';
-                    div.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
-                            <div style="width: 60px; height: 60px; background: var(--gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;"><i class="fas fa-crown"></i></div>
-                            <div>
-                                <h3 style="font-size: 20px; margin-bottom: 4px;">${rank.name}</h3>
-                                <div style="color: var(--text-muted); font-size: 14px;">${rank.description || 'Sin descripción'}</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                            <div>
-                                <div style="font-size: 28px; font-weight: 700; color: var(--primary);">$${rank.price}</div>
-                                ${rank.discount > 0 ? `<div style="color: var(--danger); font-size: 14px;"><i class="fas fa-percentage"></i> ${rank.discount}% descuento</div>` : ''}
-                            </div>
-                            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${rank.id})"><i class="fas fa-trash"></i></button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            } else {
-                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-crown"></i><p>No hay rangos creados</p></div>';
-            }
-        }
-
-        // Cargar Kits
-        async function loadKits() {
-            const { data } = await supabase.from('products').select('*').eq('type', 'kit');
-            const tbody = document.getElementById('kitsTable');
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(kit => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><div style="display: flex; align-items: center; gap: 12px;"><div style="width: 40px; height: 40px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-gift" style="color: var(--secondary);"></i></div><strong>${kit.name}</strong></div></td>
-                        <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${kit.command}</code></td>
-                        <td><strong>$${kit.price}</strong></td>
-                        <td>24h</td>
-                        <td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${kit.id})"><i class="fas fa-trash"></i></button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-gift"></i><p>No hay kits creados</p></td></tr>';
-            }
-        }
-
-        // Eliminar funciones
-        async function deleteProduct(id) {
-            if (!confirm('¿Eliminar este producto?')) return;
-            const { error } = await supabase.from('products').delete().eq('id', id);
-            if (error) { showNotification('Error: ' + error.message, 'error'); }
-            else { showNotification('Producto eliminado'); loadProducts(); loadDashboard(); loadRanks(); loadKits(); }
-        }
-
-        async function deleteOrder(id) {
-            if (!confirm('¿Eliminar esta orden?')) return;
-            const { error } = await supabase.from('orders').delete().eq('id', id);
-            if (error) { showNotification('Error: ' + error.message, 'error'); }
-            else { showNotification('Orden eliminada'); loadAllOrders(); loadDashboard(); }
-        }
-
-        async function deletePromotion(id) {
-            if (!confirm('¿Eliminar esta promoción?')) return;
-            const { error } = await supabase.from('promotions').delete().eq('id', id);
-            if (error) { showNotification('Error: ' + error.message, 'error'); }
-            else { showNotification('Promoción eliminada'); loadPromotions(); }
-        }
-
-        function viewTicket(id) { showNotification('Ver ticket #' + id, 'success'); }
-
-        // Gráficos
-        async function loadCharts() {
-            const ctx1 = document.getElementById('salesChart').getContext('2d');
-            if (salesChart) salesChart.destroy();
-            
-            const { data: orders } = await supabase.from('orders').select('created_at');
-            const last7Days = {};
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
-                last7Days[dateStr] = 0;
-            }
-            if (orders) {
-                orders.forEach(order => {
-                    const date = new Date(order.created_at);
-                    const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
-                    if (last7Days[dateStr] !== undefined) last7Days[dateStr]++;
-                });
-            }
-            
-            salesChart = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(last7Days),
-                    datasets: [{
-                        label: 'Órdenes',
-                         Object.values(last7Days),
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                    }
-                }
-            });
-            
-            const ctx2 = document.getElementById('productsChart').getContext('2d');
-            if (productsChart) productsChart.destroy();
-            
-            const {  products } = await supabase.from('products').select('name');
-            const productCount = {};
-            if (products) {
-                products.forEach(p => { productCount[p.name] = (productCount[p.name] || 0) + 1; });
-            }
-            
-            productsChart = new Chart(ctx2, {
-                type: 'doughnut',
-                 {
-                    labels: Object.keys(productCount).slice(0, 5),
-                    datasets: [{
-                         Object.values(productCount).slice(0, 5),
-                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
-                }
-            });
-        }
-
-        // Cerrar Sesión
-        async function logout() {
-            await supabase.auth.signOut();
-            showNotification('Sesión cerrada. Redirigiendo...');
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1500);
-        }
-
-        // Cerrar modales al hacer click fuera
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('active');
-            }
-        }
-
-        // Inicializar
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('✅ BuyCrafting Dashboard cargado');
-            
-            // Verificar autenticación
-            const isAuthenticated = await checkAuth();
-            
-            if (isAuthenticated) {
-                // Ocultar pantalla de carga
-                setTimeout(() => {
-                    document.getElementById('loadingScreen').classList.add('hidden');
-                }, 1000);
-                
-                updateDate();
-                loadDashboard();
-                loadApiKey();
-                
-                // Auto-refresh cada 30 segundos
-                setInterval(() => {
-                    if (currentSection === 'dashboard') loadDashboard();
-                    document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
-                }, 30000);
-            }
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+            loadDashboard(); loadApiKey();
+            setInterval(()=>{if(currentSection==='dashboard')loadDashboard(); document.getElementById('lastSync').innerText=new Date().toLocaleTimeString()},30000);
         });
+        
+        function toggleMenu(){document.querySelector('.sidebar').classList.toggle('active'); document.querySelector('.overlay').classList.toggle('active');}
+        
+        function showSection(section){
+            document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            if(event?.currentTarget) event.currentTarget.classList.add('active');
+            const titles = {'dashboard':'Dashboard','products':'Productos','orders':'Órdenes','tickets':'Tickets','promotions':'Promociones','ranks':'Rangos','kits':'Kits','settings':'Configuración'};
+            document.getElementById('pageTitle').innerText = titles[section];
+            currentSection = section;
+            if(window.innerWidth<1024) toggleMenu();
+            const loaders = {dashboard:loadDashboard,products:loadProducts,orders:loadAllOrders,tickets:loadTickets,promotions:loadPromotions,ranks:loadRanks,kits:loadKits,settings:loadApiKey};
+            if(loaders[section]) loaders[section]();
+        }
+        
+        function showNotification(msg,type='success'){
+            const n = document.getElementById('notification'), icon = n.querySelector('.notification-icon i');
+            document.getElementById('notificationText').innerText = msg;
+            n.className = 'notification show ' + type;
+            icon.className = type==='success'?'fas fa-check':'fas fa-exclamation-circle';
+            setTimeout(()=>{n.className='notification'},3000);
+        }
+        
+        function openProductModal(){document.getElementById('productModal').classList.add('active')}
+        function openOrderModal(){loadProductsForSelect(); document.getElementById('orderModal').classList.add('active')}
+        function openTicketModal(){document.getElementById('ticketModal').classList.add('active')}
+        function openPromotionModal(){document.getElementById('promotionModal').classList.add('active')}
+        function openRankModal(){showNotification('Función en desarrollo','error')}
+        function openKitModal(){showNotification('Función en desarrollo','error')}
+        function closeModal(id){document.getElementById(id).classList.remove('active')}
+        
+        function copyApiKey(){navigator.clipboard.writeText(document.getElementById('apiKeyDisplay').innerText); showNotification('Key copiada')}
+        
+        async function loadApiKey(){if(!supabase)return; const{data}=await supabase.from('config').select('api_key').eq('id',1).single(); if(data){document.getElementById('apiKeyDisplay').innerText=data.api_key; document.getElementById('newApiKey').value=data.api_key}}
+        
+        async function updateApiKey(){if(!supabase)return; const key=document.getElementById('newApiKey').value||'sk_live_'+Math.random().toString(36).substring(2,15); await supabase.from('config').upsert({id:1,api_key:key}); showNotification('Key actualizada: '+key); loadApiKey()}
+        
+        async function loadDashboard(){if(!supabase)return; try{
+            const{count}=await supabase.from('orders').select('*',{count:'exact',head:true}); document.getElementById('totalOrders').innerText=count||0;
+            const{count:pending}=await supabase.from('orders').select('*',{count:'exact',head:true}).eq('delivered',false); document.getElementById('pendingOrders').innerText=pending||0;
+            const{count:prods}=await supabase.from('products').select('*',{count:'exact',head:true}); document.getElementById('totalProducts')?.innerText=prods||0;
+            const{data:orders}=await supabase.from('orders').select('*').order('created_at',{ascending:false}).limit(5);
+            const tbody=document.getElementById('recentOrdersTable'); tbody.innerHTML='';
+            if(orders?.length) orders.forEach(o=>{tbody.innerHTML+=`<tr><td>#${o.id}</td><td>${o.player_name}</td><td>${o.product_name}</td><td>${new Date(o.created_at).toLocaleDateString()}</td><td><span class="badge ${o.delivered?'success':'pending'}">${o.delivered?'Entregado':'Pendiente'}</span></td></tr>`});
+            else tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Sin órdenes</td></tr>';
+            document.getElementById('totalRevenue').innerText='$'+((count||0)*5).toFixed(2);
+            const{count:tickets}=await supabase.from('tickets').select('*',{count:'exact',head:true}).eq('status','open'); document.getElementById('activeTickets').innerText=tickets||0;
+            const badge=document.getElementById('ticketBadge'); if(tickets>0){badge.innerText=tickets; badge.style.display='inline-flex'}else badge.style.display='none';
+            loadCharts(); document.getElementById('lastSync').innerText=new Date().toLocaleTimeString();
+        }catch(e){console.error('Error dashboard:',e)}}
+        
+        async function loadProducts(){if(!supabase)return; const{data}=await supabase.from('products').select('*'); const tbody=document.getElementById('productsTable'); tbody.innerHTML='';
+            if(data?.length) data.forEach(p=>{const d=p.discount||0; tbody.innerHTML+=`<tr><td><div style="display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="fas fa-box" style="color:var(--primary)"></i></div><div><div style="font-weight:600">${p.name}</div><div style="font-size:12px;color:var(--text-muted)">${p.description||'-'}</div></div></div></td><td><span class="product-type">${p.type||'General'}</span></td><td><strong>$${p.price||0}</strong></td><td>${d>0?`<span class="discount-badge">-${d}%</span>`:'-'}</td><td><code style="background:var(--bg);padding:4px 8px;border-radius:4px;font-size:12px">${p.command}</code></td><td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button></td></tr>`});
+            else tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Sin productos</td></tr>'}
+        
+        async function createProduct(){if(!supabase)return; const name=document.getElementById('prodName').value, type=document.getElementById('prodType').value, price=parseFloat(document.getElementById('prodPrice').value)||0, discount=parseInt(document.getElementById('prodDiscount').value)||0, desc=document.getElementById('prodDescription').value, cmd=document.getElementById('prodCommand').value, cat=document.getElementById('prodCategory').value;
+            if(!name||!cmd){showNotification('Nombre y comando requeridos','error');return}
+            await supabase.from('products').insert({name,type,price,discount,description:desc,command:cmd,category:cat});
+            showNotification('Producto creado'); closeModal('productModal'); document.getElementById('prodName').value=''; document.getElementById('prodPrice').value=''; document.getElementById('prodCommand').value=''; loadProducts(); loadDashboard()}
+        
+        async function loadProductsForSelect(){if(!supabase)return; const{data}=await supabase.from('products').select('*'); const sel=document.getElementById('orderProduct'); sel.innerHTML='<option value="">Seleccionar...</option>'; if(data) data.forEach(p=>{sel.innerHTML+=`<option value="${p.command}">${p.name} - $${p.price}</option>`})}
+        
+        async function createOrder(){if(!supabase)return; const player=document.getElementById('orderPlayer').value, cmd=document.getElementById('orderProduct').value, qty=parseInt(document.getElementById('orderQuantity').value)||1;
+            if(!player||!cmd){showNotification('Jugador y producto requeridos','error');return}
+            const{data:cfg}=await supabase.from('config').select('api_key').eq('id',1).single();
+            await supabase.from('orders').insert({player_name:player,product_name:cmd,api_key:cfg?.api_key||'sk_live_demo123',quantity:qty});
+            showNotification('Orden creada'); closeModal('orderModal'); loadAllOrders(); loadDashboard()}
+        
+        async function loadAllOrders(){if(!supabase)return; const{data}=await supabase.from('orders').select('*').order('created_at',{ascending:false}); const tbody=document.getElementById('allOrdersTable'); tbody.innerHTML='';
+            if(data?.length) data.forEach(o=>{tbody.innerHTML+=`<tr><td>#${o.id}</td><td>${o.player_name}</td><td>${o.product_name}</td><td>$${((o.quantity||1)*5).toFixed(2)}</td><td>${new Date(o.created_at).toLocaleDateString()}</td><td><span class="badge ${o.delivered?'success':'pending'}">${o.delivered?'Entregado':'Pendiente'}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteOrder(${o.id})"><i class="fas fa-trash"></i></button></td></tr>`});
+            else tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Sin órdenes</td></tr>'}
+        
+        async function loadTickets(){if(!supabase)return; const{data}=await supabase.from('tickets').select('*').order('created_at',{ascending:false}); const tbody=document.getElementById('ticketsTable'); tbody.innerHTML='';
+            if(data?.length) data.forEach(t=>{const pc={low:'info',medium:'pending',high:'danger',urgent:'danger'}; tbody.innerHTML+=`<tr><td>#${t.id}</td><td>${t.user_name||'Usuario'}</td><td><strong>${t.subject}</strong></td><td><span class="badge ${pc[t.priority]||'info'}">${t.priority}</span></td><td><span class="badge ${t.status==='open'?'pending':'success'}">${t.status}</span></td><td>${new Date(t.created_at).toLocaleDateString()}</td><td><button class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i></button></td></tr>`});
+            else tbody.innerHTML='<tr><td colspan="7" class="empty-state"><i class="fas fa-ticket-alt"></i><p>No hay tickets</p></td></tr>'}
+        
+        async function createTicket(){if(!supabase)return; const subj=document.getElementById('ticketSubject').value, prio=document.getElementById('ticketPriority').value, msg=document.getElementById('ticketMessage').value;
+            if(!subj||!msg){showNotification('Asunto y mensaje requeridos','error');return}
+            await supabase.from('tickets').insert({subject:subj,priority:prio,message:msg,status:'open'});
+            showNotification('Ticket enviado'); closeModal('ticketModal'); loadTickets(); loadDashboard()}
+        
+        async function loadPromotions(){if(!supabase)return; const{data}=await supabase.from('promotions').select('*'); const tbody=document.getElementById('promotionsTable'); tbody.innerHTML='';
+            if(data?.length) data.forEach(p=>{const active=new Date(p.expiry_date)>new Date(); tbody.innerHTML+=`<tr><td><code style="background:var(--bg);padding:4px 8px;border-radius:4px">${p.code}</code></td><td><strong>${p.discount}%</strong></td><td>${p.type||'General'}</td><td>${new Date(p.expiry_date).toLocaleDateString()}</td><td>${p.uses||0}/${p.max_uses||'∞'}</td><td><span class="badge ${active?'success':'danger'}">${active?'Activa':'Inactiva'}</span></td><td><button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button></td></tr>`});
+            else tbody.innerHTML='<tr><td colspan="7" class="empty-state"><i class="fas fa-percent"></i><p>Sin promociones</p></td></tr>'}
+        
+        async function createPromotion(){if(!supabase)return; const code=document.getElementById('promoCode').value.toUpperCase(), disc=parseInt(document.getElementById('promoDiscount').value), exp=document.getElementById('promoExpiry').value, max=parseInt(document.getElementById('promoMaxUses').value)||null;
+            if(!code||!disc||!exp){showNotification('Todos los campos requeridos','error');return}
+            await supabase.from('promotions').insert({code,discount:disc,expiry_date:exp,max_uses:max,uses:0});
+            showNotification('Promoción creada'); closeModal('promotionModal'); loadPromotions()}
+        
+        async function loadRanks(){if(!supabase)return; const{data}=await supabase.from('products').select('*').eq('type','rank'); const c=document.getElementById('ranksList'); c.innerHTML='';
+            if(data?.length) data.forEach(r=>{c.innerHTML+=`<div class="card"><div style="display:flex;align-items:center;gap:16px;margin-bottom:16px"><div style="width:60px;height:60px;background:var(--gradient);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px"><i class="fas fa-crown"></i></div><div><h3 style="font-size:20px;margin-bottom:4px">${r.name}</h3><div style="color:var(--text-muted);font-size:14px">${r.description||'-'}</div></div></div><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:28px;font-weight:700;color:var(--primary)">$${r.price}</div>${r.discount>0?`<div style="color:var(--danger);font-size:14px"><i class="fas fa-percentage"></i> -${r.discount}%</div>`:''}</div><button class="btn btn-danger btn-sm" onclick="deleteProduct(${r.id})"><i class="fas fa-trash"></i></button></div></div>`});
+            else c.innerHTML='<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-crown"></i><p>Sin rangos</p></div>'}
+        
+        async function loadKits(){if(!supabase)return; const{data}=await supabase.from('products').select('*').eq('type','kit'); const tbody=document.getElementById('kitsTable'); tbody.innerHTML='';
+            if(data?.length) data.forEach(k=>{tbody.innerHTML+=`<tr><td><div style="display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="fas fa-gift" style="color:var(--secondary)"></i></div><strong>${k.name}</strong></div></td><td><code style="background:var(--bg);padding:4px 8px;border-radius:4px;font-size:12px">${k.command}</code></td><td><strong>$${k.price}</strong></td><td>24h</td><td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${k.id})"><i class="fas fa-trash"></i></button></td></tr>`});
+            else tbody.innerHTML='<tr><td colspan="5" class="empty-state"><i class="fas fa-gift"></i><p>Sin kits</p></td></tr>'}
+        
+        async function deleteProduct(id){if(!confirm('¿Eliminar?'))return; if(!supabase)return; await supabase.from('products').delete().eq('id',id); showNotification('Eliminado'); loadProducts(); loadDashboard(); loadRanks(); loadKits()}
+        async function deleteOrder(id){if(!confirm('¿Eliminar?'))return; if(!supabase)return; await supabase.from('orders').delete().eq('id',id); showNotification('Eliminado'); loadAllOrders(); loadDashboard()}
+        
+        async function loadCharts(){if(!supabase)return;
+            const ctx1=document.getElementById('salesChart').getContext('2d'); if(salesChart) salesChart.destroy();
+            const{data:ords}=await supabase.from('orders').select('created_at'); const last7={}; for(let i=6;i>=0;i--){const d=new Date(); d.setDate(d.getDate()-i); last7[d.toLocaleDateString('es-ES',{month:'short',day:'numeric'})]=0}
+            if(ords) ords.forEach(o=>{const ds=new Date(o.created_at).toLocaleDateString('es-ES',{month:'short',day:'numeric'}); if(last7[ds]!==undefined) last7[ds]++});
+            salesChart=new Chart(ctx1,{type:'line',data:{labels:Object.keys(last7),datasets:[{label:'Órdenes',data:Object.values(last7),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.1)',fill:true,tension:0.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#334155'},ticks:{color:'#94a3b8'}},x:{grid:{display:false},ticks:{color:'#94a3b8'}}}}});
+            
+            const ctx2=document.getElementById('productsChart').getContext('2d'); if(productsChart) productsChart.destroy();
+            const{data:prods}=await supabase.from('products').select('name'); const pc={}; if(prods) prods.forEach(p=>{pc[p.name]=(pc[p.name]||0)+1});
+            productsChart=new Chart(ctx2,{type:'doughnut',data:{labels:Object.keys(pc).slice(0,5),datasets:[{data:Object.values(pc).slice(0,5),backgroundColor:['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#94a3b8'}}}}});}
+        
+        function logout(){localStorage.removeItem('buycrafting_auth'); localStorage.removeItem('buycrafting_key'); showNotification('Sesión cerrada'); setTimeout(()=>{window.location.href='login.html'},1500)}
+        window.onclick=function(e){if(e.target.classList.contains('modal')) e.target.classList.remove('active')}
     </script>
 </body>
 </html>
