@@ -227,11 +227,13 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s;
+            display: none;
         }
         
         .overlay.active {
             opacity: 1;
             visibility: visible;
+            display: block;
         }
 
         /* Main Content */
@@ -838,9 +840,56 @@
             align-items: center;
             gap: 4px;
         }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 20px;
+            animation: gradient 3s ease infinite, float 3s ease-in-out infinite;
+        }
+        
+        .loading-text {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="loading-text">Cargando BuyCrafting...</div>
+    </div>
+
     <!-- Menú Hamburguesa -->
     <div class="menu-toggle" onclick="toggleMenu()">
         <span></span>
@@ -1215,7 +1264,6 @@
                     </button>
                 </div>
                 <div id="ranksList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-                    <!-- Los rangos se cargarán aquí -->
                 </div>
             </div>
         </section>
@@ -1540,6 +1588,24 @@
         let productsChart = null;
         let currentSection = 'dashboard';
 
+        // Verificar Autenticación al Cargar
+        async function checkAuth() {
+            try {
+                const {  { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    // No hay sesión, redirigir al login
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error verificando autenticación:', error);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
         // Fecha Actual
         function updateDate() {
             const now = new Date();
@@ -1547,20 +1613,28 @@
             document.getElementById('currentDate').innerText = now.toLocaleDateString('es-ES', options);
         }
 
-        // Toggle Menú
+        // Toggle Menú - FUNCIÓN CORREGIDA
         function toggleMenu() {
-            document.querySelector('.sidebar').classList.toggle('active');
-            document.querySelector('.menu-toggle').classList.toggle('active');
-            document.querySelector('.overlay').classList.toggle('active');
+            const sidebar = document.querySelector('.sidebar');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const overlay = document.querySelector('.overlay');
+            
+            if (sidebar && menuToggle && overlay) {
+                sidebar.classList.toggle('active');
+                menuToggle.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
         }
 
-        // Mostrar Sección
+        // Mostrar Sección - FUNCIÓN CORREGIDA
         function showSection(section) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
             document.getElementById(section).classList.add('active');
-            event.currentTarget.classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
             
             const titles = {
                 'dashboard': 'Dashboard',
@@ -1576,20 +1650,26 @@
             
             currentSection = section;
             
-            // Cerrar menú en móvil
+            // Cerrar menú en móvil automáticamente
             if (window.innerWidth < 1024) {
                 toggleMenu();
             }
             
-            // Cargar datos
-            if (section === 'dashboard') loadDashboard();
-            if (section === 'products') loadProducts();
-            if (section === 'orders') loadAllOrders();
-            if (section === 'tickets') loadTickets();
-            if (section === 'promotions') loadPromotions();
-            if (section === 'ranks') loadRanks();
-            if (section === 'kits') loadKits();
-            if (section === 'settings') loadApiKey();
+            loadSectionData(section);
+        }
+
+        // Cargar datos según la sección
+        function loadSectionData(section) {
+            switch(section) {
+                case 'dashboard': loadDashboard(); break;
+                case 'products': loadProducts(); break;
+                case 'orders': loadAllOrders(); break;
+                case 'tickets': loadTickets(); break;
+                case 'promotions': loadPromotions(); break;
+                case 'ranks': loadRanks(); break;
+                case 'kits': loadKits(); break;
+                case 'settings': loadApiKey(); break;
+            }
         }
 
         // Notificaciones
@@ -1610,30 +1690,12 @@
         }
 
         // Modales
-        function openProductModal() {
-            document.getElementById('productModal').classList.add('active');
-        }
-        
-        function openOrderModal() {
-            loadProductsForSelect();
-            document.getElementById('orderModal').classList.add('active');
-        }
-        
-        function openTicketModal() {
-            document.getElementById('ticketModal').classList.add('active');
-        }
-        
-        function openPromotionModal() {
-            document.getElementById('promotionModal').classList.add('active');
-        }
-        
-        function openRankModal() {
-            showNotification('Función en desarrollo', 'error');
-        }
-        
-        function openKitModal() {
-            showNotification('Función en desarrollo', 'error');
-        }
+        function openProductModal() { document.getElementById('productModal').classList.add('active'); }
+        function openOrderModal() { loadProductsForSelect(); document.getElementById('orderModal').classList.add('active'); }
+        function openTicketModal() { document.getElementById('ticketModal').classList.add('active'); }
+        function openPromotionModal() { document.getElementById('promotionModal').classList.add('active'); }
+        function openRankModal() { showNotification('Función en desarrollo', 'error'); }
+        function openKitModal() { showNotification('Función en desarrollo', 'error'); }
         
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
@@ -1672,27 +1734,20 @@
 
         // Cargar Dashboard
         async function loadDashboard() {
-            // Total Órdenes
             const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
             document.getElementById('totalOrders').innerText = orderCount || 0;
             
-            // Órdenes Pendientes
             const { count: pendingCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('delivered', false);
             document.getElementById('pendingOrders').innerText = pendingCount || 0;
             
-            // Ingresos
-            const { data: orders } = await supabase.from('orders').select('*');
+            const {  orders } = await supabase.from('orders').select('*');
             let revenue = 0;
-            if (orders) {
-                revenue = orders.length * 5; // Estimado
-            }
+            if (orders) { revenue = orders.length * 5; }
             document.getElementById('totalRevenue').innerText = '$' + revenue.toFixed(2);
             
-            // Tickets Activos
             const { count: ticketCount } = await supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'open');
             document.getElementById('activeTickets').innerText = ticketCount || 0;
             
-            // Actualizar badge
             const badge = document.getElementById('ticketBadge');
             if (ticketCount > 0) {
                 badge.innerText = ticketCount;
@@ -1708,7 +1763,7 @@
 
         // Cargar Órdenes Recientes
         async function loadRecentOrders() {
-            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+            const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
             const tbody = document.getElementById('recentOrdersTable');
             tbody.innerHTML = '';
             if (data && data.length > 0) {
@@ -1719,9 +1774,7 @@
                         <td><strong>${order.player_name}</strong></td>
                         <td>${order.product_name}</td>
                         <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">
-                            ${order.delivered ? '<i class="fas fa-check"></i> Entregado' : '<i class="fas fa-clock"></i> Pendiente'}
-                        </span></td>
+                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">${order.delivered ? '<i class="fas fa-check"></i> Entregado' : '<i class="fas fa-clock"></i> Pendiente'}</span></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1732,7 +1785,7 @@
 
         // Cargar Productos
         async function loadProducts() {
-            const { data, error } = await supabase.from('products').select('*');
+            const { data } = await supabase.from('products').select('*');
             const tbody = document.getElementById('productsTable');
             tbody.innerHTML = '';
             if (data && data.length > 0) {
@@ -1740,26 +1793,12 @@
                     const discount = prod.discount || 0;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-box" style="color: var(--primary);"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600;">${prod.name}</div>
-                                    <div style="font-size: 12px; color: var(--text-muted);">${prod.description || 'Sin descripción'}</div>
-                                </div>
-                            </div>
-                        </td>
+                        <td><div style="display: flex; align-items: center; gap: 12px;"><div style="width: 40px; height: 40px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-box" style="color: var(--primary);"></i></div><div><div style="font-weight: 600;">${prod.name}</div><div style="font-size: 12px; color: var(--text-muted);">${prod.description || 'Sin descripción'}</div></div></div></td>
                         <td><span class="product-type"><i class="fas fa-tag"></i> ${prod.type || 'General'}</span></td>
                         <td><strong>$${prod.price || '0.00'}</strong></td>
                         <td>${discount > 0 ? `<span class="discount-badge"><i class="fas fa-percentage"></i> ${discount}%</span>` : '-'}</td>
                         <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${prod.command}</code></td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${prod.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${prod.id})"><i class="fas fa-trash"></i></button></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1777,23 +1816,19 @@
             const description = document.getElementById('prodDescription').value;
             const command = document.getElementById('prodCommand').value;
             const category = document.getElementById('prodCategory').value;
-            const image = document.getElementById('prodImage').value;
             
             if (!name || !command) {
                 showNotification('Nombre y comando son obligatorios', 'error');
                 return;
             }
             
-            const { error } = await supabase.from('products').insert({ 
-                name, type, price, discount, description, command, category, image 
-            });
+            const { error } = await supabase.from('products').insert({ name, type, price, discount, description, command, category });
             
             if (error) {
                 showNotification('Error: ' + error.message, 'error');
             } else {
                 showNotification('Producto creado exitosamente');
                 closeModal('productModal');
-                // Limpiar formulario
                 document.getElementById('prodName').value = '';
                 document.getElementById('prodPrice').value = '';
                 document.getElementById('prodDiscount').value = '';
@@ -1830,14 +1865,9 @@
                 return;
             }
             
-            const { data: config } = await supabase.from('config').select('api_key').eq('id', 1).single();
+            const {  config } = await supabase.from('config').select('api_key').eq('id', 1).single();
             
-            const { error } = await supabase.from('orders').insert({
-                player_name: player,
-                product_name: command,
-                api_key: config.api_key,
-                quantity: quantity
-            });
+            const { error } = await supabase.from('orders').insert({ player_name: player, product_name: command, api_key: config.api_key, quantity: quantity });
             
             if (error) {
                 showNotification('Error: ' + error.message, 'error');
@@ -1851,7 +1881,7 @@
 
         // Cargar Todas las Órdenes
         async function loadAllOrders() {
-            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+            const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
             const tbody = document.getElementById('allOrdersTable');
             tbody.innerHTML = '';
             if (data && data.length > 0) {
@@ -1863,14 +1893,8 @@
                         <td>${order.product_name}</td>
                         <td>$${((order.quantity || 1) * 5).toFixed(2)}</td>
                         <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">
-                            ${order.delivered ? '<i class="fas fa-check"></i> Entregado' : '<i class="fas fa-clock"></i> Pendiente'}
-                        </span></td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
+                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">${order.delivered ? '<i class="fas fa-check"></i> Entregado' : '<i class="fas fa-clock"></i> Pendiente'}</span></td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.id})"><i class="fas fa-trash"></i></button></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1881,17 +1905,12 @@
 
         // Cargar Tickets
         async function loadTickets() {
-            const { data, error } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
+            const { data } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
             const tbody = document.getElementById('ticketsTable');
             tbody.innerHTML = '';
             if (data && data.length > 0) {
                 data.forEach(ticket => {
-                    const priorityColors = {
-                        'low': 'info',
-                        'medium': 'pending',
-                        'high': 'danger',
-                        'urgent': 'danger'
-                    };
+                    const priorityColors = { 'low': 'info', 'medium': 'pending', 'high': 'danger', 'urgent': 'danger' };
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>#${ticket.id}</td>
@@ -1900,11 +1919,7 @@
                         <td><span class="badge ${priorityColors[ticket.priority] || 'info'}">${ticket.priority}</span></td>
                         <td><span class="badge ${ticket.status === 'open' ? 'pending' : 'success'}">${ticket.status}</span></td>
                         <td>${new Date(ticket.created_at).toLocaleDateString()}</td>
-                        <td>
-                            <button class="btn btn-sm btn-secondary" onclick="viewTicket(${ticket.id})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
+                        <td><button class="btn btn-sm btn-secondary" onclick="viewTicket(${ticket.id})"><i class="fas fa-eye"></i></button></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1924,9 +1939,7 @@
                 return;
             }
             
-            const { error } = await supabase.from('tickets').insert({ 
-                subject, priority, message, status: 'open' 
-            });
+            const { error } = await supabase.from('tickets').insert({ subject, priority, message, status: 'open' });
             
             if (error) {
                 showNotification('Error: ' + error.message, 'error');
@@ -1940,7 +1953,7 @@
 
         // Cargar Promociones
         async function loadPromotions() {
-            const { data, error } = await supabase.from('promotions').select('*');
+            const { data } = await supabase.from('promotions').select('*');
             const tbody = document.getElementById('promotionsTable');
             tbody.innerHTML = '';
             if (data && data.length > 0) {
@@ -1954,11 +1967,7 @@
                         <td>${new Date(promo.expiry_date).toLocaleDateString()}</td>
                         <td>${promo.uses || 0}/${promo.max_uses || '∞'}</td>
                         <td><span class="badge ${isActive ? 'success' : 'danger'}">${isActive ? 'Activa' : 'Inactiva'}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" onclick="deletePromotion(${promo.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deletePromotion(${promo.id})"><i class="fas fa-trash"></i></button></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1979,9 +1988,7 @@
                 return;
             }
             
-            const { error } = await supabase.from('promotions').insert({ 
-                code, discount, expiry_date: expiry, max_uses: maxUses, uses: 0 
-            });
+            const { error } = await supabase.from('promotions').insert({ code, discount, expiry_date: expiry, max_uses: maxUses, uses: 0 });
             
             if (error) {
                 showNotification('Error: ' + error.message, 'error');
@@ -2003,9 +2010,7 @@
                     div.className = 'card';
                     div.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
-                            <div style="width: 60px; height: 60px; background: var(--gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">
-                                <i class="fas fa-crown"></i>
-                            </div>
+                            <div style="width: 60px; height: 60px; background: var(--gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;"><i class="fas fa-crown"></i></div>
                             <div>
                                 <h3 style="font-size: 20px; margin-bottom: 4px;">${rank.name}</h3>
                                 <div style="color: var(--text-muted); font-size: 14px;">${rank.description || 'Sin descripción'}</div>
@@ -2016,9 +2021,7 @@
                                 <div style="font-size: 28px; font-weight: 700; color: var(--primary);">$${rank.price}</div>
                                 ${rank.discount > 0 ? `<div style="color: var(--danger); font-size: 14px;"><i class="fas fa-percentage"></i> ${rank.discount}% descuento</div>` : ''}
                             </div>
-                            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${rank.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${rank.id})"><i class="fas fa-trash"></i></button>
                         </div>
                     `;
                     container.appendChild(div);
@@ -2037,22 +2040,11 @@
                 data.forEach(kit => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-gift" style="color: var(--secondary);"></i>
-                                </div>
-                                <strong>${kit.name}</strong>
-                            </div>
-                        </td>
+                        <td><div style="display: flex; align-items: center; gap: 12px;"><div style="width: 40px; height: 40px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-gift" style="color: var(--secondary);"></i></div><strong>${kit.name}</strong></div></td>
                         <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${kit.command}</code></td>
                         <td><strong>$${kit.price}</strong></td>
                         <td>24h</td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${kit.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteProduct(${kit.id})"><i class="fas fa-trash"></i></button></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -2065,47 +2057,28 @@
         async function deleteProduct(id) {
             if (!confirm('¿Eliminar este producto?')) return;
             const { error } = await supabase.from('products').delete().eq('id', id);
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Producto eliminado');
-                loadProducts();
-                loadDashboard();
-                loadRanks();
-                loadKits();
-            }
+            if (error) { showNotification('Error: ' + error.message, 'error'); }
+            else { showNotification('Producto eliminado'); loadProducts(); loadDashboard(); loadRanks(); loadKits(); }
         }
 
         async function deleteOrder(id) {
             if (!confirm('¿Eliminar esta orden?')) return;
             const { error } = await supabase.from('orders').delete().eq('id', id);
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Orden eliminada');
-                loadAllOrders();
-                loadDashboard();
-            }
+            if (error) { showNotification('Error: ' + error.message, 'error'); }
+            else { showNotification('Orden eliminada'); loadAllOrders(); loadDashboard(); }
         }
 
         async function deletePromotion(id) {
             if (!confirm('¿Eliminar esta promoción?')) return;
             const { error } = await supabase.from('promotions').delete().eq('id', id);
-            if (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } else {
-                showNotification('Promoción eliminada');
-                loadPromotions();
-            }
+            if (error) { showNotification('Error: ' + error.message, 'error'); }
+            else { showNotification('Promoción eliminada'); loadPromotions(); }
         }
 
-        function viewTicket(id) {
-            showNotification('Ver ticket #' + id, 'success');
-        }
+        function viewTicket(id) { showNotification('Ver ticket #' + id, 'success'); }
 
         // Gráficos
         async function loadCharts() {
-            // Gráfico de Ventas
             const ctx1 = document.getElementById('salesChart').getContext('2d');
             if (salesChart) salesChart.destroy();
             
@@ -2131,84 +2104,57 @@
                     labels: Object.keys(last7Days),
                     datasets: [{
                         label: 'Órdenes',
-                        data: Object.values(last7Days),
+                         Object.values(last7Days),
                         borderColor: '#6366f1',
                         backgroundColor: 'rgba(99, 102, 241, 0.1)',
                         fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#6366f1',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#94a3b8' }
-                        }
+                        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
                     }
                 }
             });
             
-            // Gráfico de Productos
             const ctx2 = document.getElementById('productsChart').getContext('2d');
             if (productsChart) productsChart.destroy();
             
-            const { data: products } = await supabase.from('products').select('name');
+            const {  products } = await supabase.from('products').select('name');
             const productCount = {};
             if (products) {
-                products.forEach(p => {
-                    productCount[p.name] = (productCount[p.name] || 0) + 1;
-                });
+                products.forEach(p => { productCount[p.name] = (productCount[p.name] || 0) + 1; });
             }
             
             productsChart = new Chart(ctx2, {
                 type: 'doughnut',
-                data: {
+                 {
                     labels: Object.keys(productCount).slice(0, 5),
                     datasets: [{
-                        data: Object.values(productCount).slice(0, 5),
+                         Object.values(productCount).slice(0, 5),
                         backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 15 } }
-                    }
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
                 }
             });
         }
 
-        function logout() {
-            showNotification('Sesión cerrada');
+        // Cerrar Sesión
+        async function logout() {
+            await supabase.auth.signOut();
+            showNotification('Sesión cerrada. Redirigiendo...');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
         }
-
-        // Inicializar
-        updateDate();
-        loadDashboard();
-        loadApiKey();
-        
-        // Auto-refresh cada 30 segundos
-        setInterval(() => {
-            if (currentSection === 'dashboard') loadDashboard();
-            document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
-        }, 30000);
 
         // Cerrar modales al hacer click fuera
         window.onclick = function(event) {
@@ -2216,6 +2162,31 @@
                 event.target.classList.remove('active');
             }
         }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('✅ BuyCrafting Dashboard cargado');
+            
+            // Verificar autenticación
+            const isAuthenticated = await checkAuth();
+            
+            if (isAuthenticated) {
+                // Ocultar pantalla de carga
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                }, 1000);
+                
+                updateDate();
+                loadDashboard();
+                loadApiKey();
+                
+                // Auto-refresh cada 30 segundos
+                setInterval(() => {
+                    if (currentSection === 'dashboard') loadDashboard();
+                    document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
+                }, 30000);
+            }
+        });
     </script>
 </body>
 </html>
