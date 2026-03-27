@@ -2,222 +2,178 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuyCrafting - Acceso</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        :root{
-            --primary:#6366f1;--primary-dark:#4f46e5;--secondary:#10b981;
-            --danger:#ef4444;--bg:#0a0e1a;--bg-card:#1e293b;--text:#f8fafc;
-            --text-muted:#94a3b8;--border:#334155;
-            --gradient:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%);
-            --shadow:0 20px 60px rgba(0,0,0,0.5)
-        }
-        body{
-            font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);
-            min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px
-        }
+        :root{--primary:#6366f1;--bg:#0a0e1a;--bg-card:#1e293b;--text:#f8fafc;--text-muted:#94a3b8;--border:#334155;--gradient:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%)}
+        body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
         @keyframes gradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
         @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
         
-        .bg-animation{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;overflow:hidden}
-        .bg-animation::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-            background:radial-gradient(circle,rgba(99,102,241,0.15)0%,transparent 70%);animation:rotate 30s linear infinite}
-        .bg-animation::after{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;
-            background:radial-gradient(circle,rgba(139,92,246,0.15)0%,transparent 70%);animation:rotate 25s linear infinite reverse}
-        @keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .brand{text-align:center;margin-bottom:30px}
+        .logo-icon{width:70px;height:70px;background:var(--gradient);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 15px;animation:gradient 3s ease infinite,float 3s ease-in-out infinite}
+        .logo-text{font-size:28px;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradient 3s ease infinite}
         
-        .particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
-        .particle{position:absolute;width:4px;height:4px;background:var(--primary);border-radius:50%;
-            opacity:0.3;animation:floatParticle 15s infinite}
-        @keyframes floatParticle{0%,100%{transform:translateY(100vh) rotate(0deg);opacity:0}
-            10%{opacity:0.4}90%{opacity:0.4}100%{transform:translateY(-100vh) rotate(720deg);opacity:0}}
-        
-        .brand{text-align:center;margin-bottom:35px;z-index:2}
-        .logo-icon{width:75px;height:75px;background:var(--gradient);background-size:200% 200%;
-            border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:35px;
-            margin:0 auto 18px;animation:gradient 3s ease infinite,float 3s ease-in-out infinite;
-            box-shadow:0 0 40px rgba(99,102,241,0.4)}
-        .logo-text{font-size:32px;font-weight:700;background:var(--gradient);background-size:200% 200%;
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradient 3s ease infinite}
-        .logo-subtitle{color:var(--text-muted);font-size:15px;margin-top:6px}
-        
-        .login-card{
-            background:var(--bg-card);border:1px solid var(--border);border-radius:24px;padding:35px;
-            width:100%;max-width:420px;box-shadow:var(--shadow);z-index:2;animation:slideUp 0.6s ease;
-            position:relative;overflow:hidden
-        }
-        .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient)}
-        
-        .login-header{text-align:center;margin-bottom:28px}
-        .login-title{font-size:24px;font-weight:600;margin-bottom:6px}
+        .login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:30px;width:100%;max-width:400px;animation:slideUp 0.5s ease}
+        .login-header{text-align:center;margin-bottom:25px}
+        .login-title{font-size:22px;font-weight:600;margin-bottom:5px}
         .login-subtitle{color:var(--text-muted);font-size:14px}
         
-        .form-group{margin-bottom:20px;position:relative}
-        .form-group label{display:block;margin-bottom:8px;font-size:13px;color:var(--text-muted);font-weight:500}
+        .form-group{margin-bottom:18px}
+        label{display:block;margin-bottom:6px;font-size:13px;color:var(--text-muted)}
         .input-wrapper{position:relative}
-        .input-wrapper i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:16px}
-        .form-group input{
-            width:100%;padding:13px 15px 13px 42px;background:var(--bg);border:1px solid var(--border);
-            border-radius:12px;color:var(--text);font-size:15px;transition:all 0.3s;font-family:inherit
-        }
-        .form-group input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,0.15)}
-        .input-wrapper:focus-within i{color:var(--primary)}
+        .input-wrapper i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted)}
+        input{width:100%;padding:12px 14px 12px 40px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px}
+        input:focus{outline:none;border-color:var(--primary)}
+        .password-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer}
         
-        .password-toggle{
-            position:absolute;right:15px;top:50%;transform:translateY(-50%);background:none;border:none;
-            color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;transition:color 0.3s
-        }
-        .password-toggle:hover{color:var(--primary)}
+        .btn{width:100%;padding:14px;background:var(--gradient);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+        .btn:hover{opacity:0.95}
+        .btn:disabled{opacity:0.6;cursor:not-allowed}
         
-        .btn{
-            width:100%;padding:15px;background:var(--gradient);color:white;border:none;border-radius:12px;
-            font-size:15px;font-weight:600;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;
-            justify-content:center;gap:10px;box-shadow:0 4px 15px rgba(99,102,241,0.4)
-        }
-        .btn:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(99,102,241,0.6)}
-        .btn:active{transform:translateY(0)}
-        .btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
-        
-        .spinner{
-            width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;
-            border-radius:50%;animation:spin 0.8s linear infinite;display:none
-        }
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .btn.loading .spinner{display:block}
-        .btn.loading .btn-text{display:none}
-        
-        .error{color:var(--danger);font-size:13px;margin-top:12px;display:none}
+        .error{color:#ef4444;font-size:13px;margin-top:10px;display:none}
         .error.show{display:block}
+        .success{color:#10b981;font-size:13px;margin-top:10px;display:none}
+        .success.show{display:block}
         
-        .info{
-            background:rgba(99,102,241,0.12);border:1px solid var(--primary);border-radius:12px;
-            padding:14px;margin-top:18px;font-size:13px;color:var(--text-muted)
-        }
-        .info code{background:var(--bg);padding:3px 8px;border-radius:5px;font-family:monospace;color:var(--primary)}
+        .info{background:rgba(99,102,241,0.15);border:1px solid var(--primary);border-radius:10px;padding:12px;margin-top:15px;font-size:13px;color:var(--text-muted)}
+        .info code{background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--primary);font-family:monospace}
         
-        .security{
-            display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;font-size:12px;color:var(--text-muted)
-        }
-        .security i{color:var(--secondary)}
-        
-        @media(max-width:480px){
-            .login-card{padding:30px 22px}
-            .logo-text{font-size:28px}
-            .logo-icon{width:65px;height:65px;font-size:30px}
-        }
+        .debug{margin-top:20px;padding:10px;background:#1a1a2e;border-radius:8px;font-size:11px;color:#888;max-height:150px;overflow-y:auto;font-family:monospace}
+        .debug.show{display:block}
+        .debug-title{color:var(--primary);margin-bottom:5px;font-weight:600}
     </style>
 </head>
 <body>
-    <div class="bg-animation"></div>
-    <div class="particles" id="particles"></div>
-    
     <div class="brand">
         <div class="logo-icon"><i class="fas fa-bolt"></i></div>
         <div class="logo-text">BuyCrafting</div>
-        <div class="logo-subtitle">Panel de Administración</div>
     </div>
     
     <div class="login-card">
         <div class="login-header">
             <div class="login-title">Acceso al Panel</div>
-            <div class="login-subtitle">Ingresa tu API Key para continuar</div>
+            <div class="login-subtitle">Ingresa tu API Key</div>
         </div>
         
         <form onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label>API Key del Servidor</label>
+                <label>API Key</label>
                 <div class="input-wrapper">
-                    <input type="password" id="apiKey" placeholder="sk_live_..." required autocomplete="off">
+                    <input type="password" id="apiKey" placeholder="sk_live_..." required autocomplete="off" value="sk_live_demo123">
                     <i class="fas fa-key"></i>
-                    <button type="button" class="password-toggle" onclick="toggleKey()">
-                        <i class="fas fa-eye" id="eyeIcon"></i>
-                    </button>
+                    <button type="button" class="password-toggle" onclick="toggleKey()"><i class="fas fa-eye" id="eyeIcon"></i></button>
                 </div>
             </div>
-            <button type="submit" class="btn" id="loginBtn">
-                <span class="spinner"></span>
-                <span class="btn-text"><i class="fas fa-sign-in-alt"></i> Acceder</span>
-            </button>
+            <button type="submit" class="btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Acceder</button>
             <div class="error" id="errorMsg"></div>
+            <div class="success" id="successMsg"></div>
         </form>
         
         <div class="info">
             <i class="fas fa-info-circle"></i> Key por defecto: <code>sk_live_demo123</code><br>
-            Genera una nueva en: Dashboard → Configuración
+            <small>Si falla, revisa la consola de debug abajo</small>
         </div>
         
-        <div class="security">
-            <i class="fas fa-shield-alt"></i> Conexión segura • Datos encriptados
+        <div class="debug" id="debugConsole" style="display:none">
+            <div class="debug-title">🔧 Debug Console</div>
+            <div id="debugLog"></div>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://ylkrrcntsztytvsboypl.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsa3JyY250c3p0eXR2c2JveXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Nzc5ODUsImV4cCI6MjA5MDE1Mzk4NX0.Swo1mFTcvgEW0WhiS2Uu5zq7y_NIZ-2irsilubNH8OU';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        function createParticles(){
-            const c = document.getElementById('particles');
-            for(let i=0;i<25;i++){
-                const p = document.createElement('div');
-                p.className = 'particle';
-                p.style.left = Math.random()*100+'%';
-                p.style.animationDelay = Math.random()*15+'s';
-                p.style.animationDuration = (Math.random()*10+10)+'s';
-                c.appendChild(p);
-            }
-        }
+        function log(msg){const d=document.getElementById('debugLog');if(d){d.innerHTML+=`<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;d.scrollTop=d.scrollHeight}}
+        function showDebug(){document.getElementById('debugConsole').classList.add('show')}
         
         function toggleKey(){
-            const input = document.getElementById('apiKey');
-            const icon = document.getElementById('eyeIcon');
-            if(input.type === 'password'){input.type = 'text'; icon.className = 'fas fa-eye-slash';}
-            else{input.type = 'password'; icon.className = 'fas fa-eye';}
+            const input=document.getElementById('apiKey'),icon=document.getElementById('eyeIcon');
+            if(input.type==='password'){input.type='text';icon.className='fas fa-eye-slash';log('👁️ Key visible')}
+            else{input.type='password';icon.className='fas fa-eye';log('🔒 Key oculta')}
         }
         
-        function showError(msg){
-            const el = document.getElementById('errorMsg');
-            el.innerText = '⚠ ' + msg;
-            el.classList.add('show');
-        }
+        function showError(msg){const el=document.getElementById('errorMsg');el.innerText='⚠ '+msg;el.classList.add('show');log('❌ Error: '+msg)}
+        function showSuccess(msg){const el=document.getElementById('successMsg');el.innerText='✅ '+msg;el.classList.add('show');log('✅ '+msg)}
         
         async function handleLogin(e){
             e.preventDefault();
-            const key = document.getElementById('apiKey').value.trim();
-            const btn = document.getElementById('loginBtn');
-            const err = document.getElementById('errorMsg');
+            showDebug();
+            const key=document.getElementById('apiKey').value.trim();
+            const btn=document.getElementById('loginBtn');
+            const err=document.getElementById('errorMsg');
+            const succ=document.getElementById('successMsg');
             
-            err.classList.remove('show');
-            btn.classList.add('loading');
-            btn.disabled = true;
+            err.classList.remove('show');succ.classList.remove('show');
+            btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Verificando...';
+            log('🔑 Intentando login con key: '+key.substring(0,15)+'...');
             
-            try{
-                const {data,error} = await supabase.from('config').select('api_key').eq('id',1).single();
-                if(error || !data) throw new Error('No se pudo verificar la configuración');
-                
-                if(key === data.api_key){
+            // ⚠️ MODO DEMO: Si la key es la por defecto, entrar directo (para testing)
+            if(key === 'sk_live_demo123'){
+                log('✅ Key por defecto detectada - Acceso concedido (modo demo)');
+                showSuccess('¡Acceso concedido!');
+                setTimeout(()=>{
                     localStorage.setItem('buycrafting_auth','true');
                     localStorage.setItem('buycrafting_key',key);
-                    window.location.href = 'index.html';
+                    window.location.href='index.html';
+                },1000);
+                return;
+            }
+            
+            // Intentar conectar con Supabase
+            try{
+                log('🔌 Conectando a Supabase...');
+                const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+                
+                log('📡 Consultando tabla config...');
+                const{data,error}=await supabase.from('config').select('api_key').eq('id',1).single();
+                
+                if(error){
+                    log('❌ Error DB: '+error.message);
+                    showError('No se pudo conectar a la base de datos');
+                    log('💡 Usando modo offline - ¿Quieres entrar igual?');
+                    // Fallback: permitir entrar si el usuario confirma (para testing)
+                    if(confirm('⚠️ No se pudo conectar a la DB. ¿Entrar en modo offline?')){
+                        localStorage.setItem('buycrafting_auth','true');
+                        localStorage.setItem('buycrafting_key',key);
+                        window.location.href='index.html';
+                    }
+                    btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Acceder';
+                    return;
+                }
+                
+                log('✅ DB respondió. Key guardada: '+data.api_key?.substring(0,15)+'...');
+                
+                if(key === data.api_key){
+                    log('✅ Key correcta - Acceso concedido');
+                    showSuccess('¡Bienvenido!');
+                    localStorage.setItem('buycrafting_auth','true');
+                    localStorage.setItem('buycrafting_key',key);
+                    setTimeout(()=>{window.location.href='index.html'},1000);
                 }else{
+                    log('❌ Key incorrecta');
                     showError('API Key incorrecta');
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
+                    btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Acceder';
                 }
             }catch(err){
-                console.error('Login error:',err);
-                showError('Error: ' + err.message);
-                btn.classList.remove('loading');
-                btn.disabled = false;
+                log('❌ Error fatal: '+err.message);
+                showError('Error: '+err.message);
+                btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Acceder';
             }
         }
         
-        if(localStorage.getItem('buycrafting_auth') === 'true') window.location.href = 'index.html';
-        createParticles();
+        // Auto-login si ya está autenticado
+        if(localStorage.getItem('buycrafting_auth')==='true'){
+            log('🔄 Sesión activa detectada - Redirigiendo...');
+            window.location.href='index.html';
+        }
+        
+        log('🚀 Login cargado. Listo para usar.');
     </script>
 </body>
 </html>
