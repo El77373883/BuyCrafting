@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyCrafting - Dashboard Premium</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+        .nav-item.active {
+            background: var(--gradient);
+            color: white;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 32px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-card);
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+        }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .stat-icon.purple { background: rgba(99, 102, 241, 0.2); }
+        .stat-icon.green { background: rgba(16, 185, 129, 0.2); }
+        .stat-icon.orange { background: rgba(245, 158, 11, 0.2); }
+        .stat-icon.red { background: rgba(239, 68, 68, 0.2); }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .stat-change {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .stat-change.positive { color: var(--secondary); }
+        .stat-change.negative { color: var(--danger); }
+        
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* Tables */
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge.success { background: rgba(16, 185, 129, 0.2); color: var(--secondary); }
+        .badge.pending { background: rgba(245, 158, 11, 0.2); color: var(--accent); }
+        .badge.failed { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        
+        /* Forms */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+        
+        /* API Key Display */
+        .key-display {
+            background: var(--bg);
+            padding: 16px;
+            border-radius: 10px;
+            font-family: 'Monaco', monospace;
+            border: 1px solid var(--primary);
+            word-break: break-all;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .key-value {
+            color: var(--primary);
+        }
+        .copy-btn {
+            background: var(--bg-hover);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                padding: 16px;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        }
+        
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.success {
+            border-color: var(--secondary);
+        }
+        .notification.error {
+            border-color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <span>⚡</span> BuyCrafting
+        </div>
+        <a class="nav-item active" onclick="showSection('dashboard')">
+            <span>📊</span> Dashboard
+        </a>
+        <a class="nav-item" onclick="showSection('orders')">
+            <span>🛒</span> Órdenes
+        </a>
+        <a class="nav-item" onclick="showSection('products')">
+            <span>📦</span> Productos
+        </a>
+        <a class="nav-item" onclick="showSection('settings')">
+            <span>⚙️</span> Configuración
+        </a>
+        <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+            <div class="nav-item" onclick="logout()">
+                <span>🚪</span> Cerrar Sesión
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div>
+                <h1 id="pageTitle">Dashboard</h1>
+                <p id="currentDate">Cargando fecha...</p>
+            </div>
+            <div class="user-info">
+                <div class="avatar">A</div>
+                <div>
+                    <div style="font-weight: 600;">Admin</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Administrador</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard-section">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="totalRevenue">$0.00</div>
+                            <div class="stat-label">Ingresos Totales</div>
+                        </div>
+                        <div class="stat-icon purple">💰</div>
+                    </div>
+                    <div class="stat-change positive">↑ 12% vs mes anterior</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="totalOrders">0</div>
+                            <div class="stat-label">Órdenes Totales</div>
+                        </div>
+                        <div class="stat-icon green">📦</div>
+                    </div>
+                    <div class="stat-change positive">↑ 8% vs mes anterior</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="pendingOrders">0</div>
+                            <div class="stat-label">Órdenes Pendientes</div>
+                        </div>
+                        <div class="stat-icon orange">⏳</div>
+                    </div>
+                    <div class="stat-change negative">Requieren atención</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="totalProducts">0</div>
+                            <div class="stat-label">Productos Activos</div>
+                        </div>
+                        <div class="stat-icon red">🏷️</div>
+                    </div>
+                    <div class="stat-change positive">Listos para vender</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">📈 Ventas de los Últimos 7 Días</div>
+                    </div>
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">🥇 Productos Más Vendidos</div>
+                    </div>
+                    <canvas id="productsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="chart-title">🕐 Órdenes Recientes</div>
+                    <button class="btn btn-secondary" onclick="loadOrders()">🔄 Actualizar</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Jugador</th>
+                            <th>Producto</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrdersTable">
+                        <tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Orders Section -->
+        <section id="orders-section" style="display: none;">
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="chart-title">🛒 Todas las Órdenes</div>
+                    <button class="btn btn-primary" onclick="showNewOrderModal()">+ Nueva Orden</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Jugador</th>
+                            <th>Producto</th>
+                            <th>Comando</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allOrdersTable">
+                        <tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products-section" style="display: none;">
+            <div class="form-card">
+                <div class="chart-title" style="margin-bottom: 20px;">📦 Crear Nuevo Producto</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" id="prodName" placeholder="Ej: Rango VIP">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio</label>
+                        <input type="text" id="prodPrice" placeholder="Ej: $5.00 USD">
+                    </div>
+                    <div class="form-group">
+                        <label>Comando</label>
+                        <input type="text" id="prodCommand" placeholder="Ej: give {player} diamond 1">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="prodCategory">
+                            <option value="ranks">Rangos</option>
+                            <option value="items">Items</option>
+                            <option value="keys">Llaves</option>
+                            <option value="other">Otros</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="createProduct()">💾 Guardar Producto</button>
+            </div>
+            <div class="table-card">
+                <div class="chart-title" style="margin-bottom: 20px;">📋 Productos Existentes</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Comando</th>
+                            <th>Categoría</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTable">
+                        <tr><td colspan="5" class="loading"><div class="spinner"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" style="display: none;">
+            <div class="form-card">
+                <div class="chart-title" style="margin-bottom: 20px;">🔐 Configuración de API Key</div>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">
+                    Esta clave conecta tu plugin de Minecraft con el dashboard. 
+                    Cópiala y pégala en el <code>config.yml</code> del plugin.
+                </p>
+                <div class="key-display">
+                    <span class="key-value" id="apiKeyDisplay">Cargando...</span>
+                    <button class="copy-btn" onclick="copyApiKey()">📋 Copiar</button>
+                </div>
+                <div class="form-group">
+                    <label>Generar Nueva Key</label>
+                    <input type="text" id="newApiKey" placeholder="Deja vacío para generar automáticamente">
+                </div>
+                <button class="btn btn-primary" onclick="updateApiKey()">🔄 Actualizar API Key</button>
+            </div>
+            
+            <div class="form-card">
+                <div class="chart-title" style="margin-bottom: 20px;">🗄️ Estado de la Base de Datos</div>
+                <div class="stats-grid" style="margin-bottom: 0;">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-label">Conexión</div>
+                            <div class="stat-icon green">✅</div>
+                        </div>
+                        <div class="stat-value" style="font-size: 18px;" id="dbStatus">Conectado</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-label">Última Sync</div>
+                            <div class="stat-icon purple">🔄</div>
+                        </div>
+                        <div class="stat-value" style="font-size: 18px;" id="lastSync">Ahora</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span id="notificationText"></span>
+    </div>
+
+    <script>
+        // ⚠️ CAMBIA ESTOS DATOS CON LOS DE TU SUPABASE
+        const SUPABASE_URL = 'TU_SUPABASE_URL';
+        const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let salesChart = null;
+        let productsChart = null;
+
+        // Fecha Actual
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').innerText = now.toLocaleDateString('es-ES', options);
+        }
+
+        // Navegación
+        function showSection(section) {
+            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(section + '-section').style.display = 'block';
+            event.target.classList.add('active');
+            
+            const titles = {
+                'dashboard': 'Dashboard',
+                'orders': 'Gestión de Órdenes',
+                'products': 'Productos',
+                'settings': 'Configuración'
+            };
+            document.getElementById('pageTitle').innerText = titles[section];
+            
+            if (section === 'dashboard') loadDashboard();
+            if (section === 'orders') loadAllOrders();
+            if (section === 'products') loadProducts();
+            if (section === 'settings') loadApiKey();
+        }
+
+        // Notificaciones
+        function showNotification(message, type = 'success') {
+            const notif = document.getElementById('notification');
+            document.getElementById('notificationText').innerText = message;
+            notif.className = 'notification show ' + type;
+            setTimeout(() => { notif.className = 'notification'; }, 3000);
+        }
+
+        // Copiar API Key
+        function copyApiKey() {
+            const key = document.getElementById('apiKeyDisplay').innerText;
+            navigator.clipboard.writeText(key);
+            showNotification('✅ API Key copiada al portapapeles');
+        }
+
+        // Cargar API Key
+        async function loadApiKey() {
+            const { data, error } = await supabase.from('config').select('api_key').eq('id', 1).single();
+            if (data) {
+                document.getElementById('apiKeyDisplay').innerText = data.api_key;
+                document.getElementById('newApiKey').value = data.api_key;
+            }
+        }
+
+        // Actualizar API Key
+        async function updateApiKey() {
+            let key = document.getElementById('newApiKey').value;
+            if (!key) {
+                key = 'sk_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            }
+            const { error } = await supabase.from('config').upsert({ id: 1, api_key: key });
+            if (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            } else {
+                showNotification('✅ API Key actualizada. Actualiza el config.yml del plugin.');
+                loadApiKey();
+            }
+        }
+
+        // Cargar Dashboard
+        async function loadDashboard() {
+            // Total Órdenes
+            const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+            document.getElementById('totalOrders').innerText = orderCount || 0;
+            
+            // Órdenes Pendientes
+            const { count: pendingCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('delivered', false);
+            document.getElementById('pendingOrders').innerText = pendingCount || 0;
+            
+            // Total Productos
+            const { count: productCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+            document.getElementById('totalProducts').innerText = productCount || 0;
+            
+            // Ingresos (estimado)
+            const { data: orders } = await supabase.from('orders').select('*');
+            let revenue = 0;
+            if (orders) {
+                // Aquí podrías tener un campo de precio en orders
+                revenue = orders.length * 5; // Estimado $5 por orden
+            }
+            document.getElementById('totalRevenue').innerText = '$' + revenue.toFixed(2);
+            
+            // Órdenes Recientes
+            loadRecentOrders();
+            
+            // Gráficos
+            loadCharts();
+            
+            document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
+        }
+
+        // Cargar Órdenes Recientes
+        async function loadRecentOrders() {
+            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+            const tbody = document.getElementById('recentOrdersTable');
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(order => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>#${order.id}</td>
+                        <td>${order.player_name}</td>
+                        <td>${order.product_name}</td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">${order.delivered ? '✅ Entregado' : '⏳ Pendiente'}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No hay órdenes recientes</td></tr>';
+            }
+        }
+
+        // Cargar Todas las Órdenes
+        async function loadAllOrders() {
+            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+            const tbody = document.getElementById('allOrdersTable');
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(order => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>#${order.id}</td>
+                        <td>${order.player_name}</td>
+                        <td>${order.product_name}</td>
+                        <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${order.product_name}</code></td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                        <td><span class="badge ${order.delivered ? 'success' : 'pending'}">${order.delivered ? '✅ Entregado' : '⏳ Pendiente'}</span></td>
+                        <td><button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="deleteOrder(${order.id})">🗑️</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No hay órdenes</td></tr>';
+            }
+        }
+
+        // Cargar Productos
+        async function loadProducts() {
+            const { data, error } = await supabase.from('products').select('*');
+            const tbody = document.getElementById('productsTable');
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(prod => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${prod.name}</strong></td>
+                        <td>${prod.price}</td>
+                        <td><code style="background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${prod.command}</code></td>
+                        <td>${prod.category || 'General'}</td>
+                        <td><button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="deleteProduct(${prod.id})">🗑️</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No hay productos</td></tr>';
+            }
+        }
+
+        // Crear Producto
+        async function createProduct() {
+            const name = document.getElementById('prodName').value;
+            const price = document.getElementById('prodPrice').value;
+            const command = document.getElementById('prodCommand').value;
+            const category = document.getElementById('prodCategory').value;
+            
+            if (!name || !command) {
+                showNotification('❌ Nombre y comando son obligatorios', 'error');
+                return;
+            }
+            
+            const { error } = await supabase.from('products').insert({ name, price, command, category });
+            if (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            } else {
+                showNotification('✅ Producto creado exitosamente');
+                document.getElementById('prodName').value = '';
+                document.getElementById('prodPrice').value = '';
+                document.getElementById('prodCommand').value = '';
+                loadProducts();
+                loadDashboard();
+            }
+        }
+
+        // Crear Nueva Orden (Manual)
+        async function showNewOrderModal() {
+            const player = prompt('Nombre del jugador:');
+            if (!player) return;
+            
+            const { data: products } = await supabase.from('products').select('*');
+            if (!products || products.length === 0) {
+                showNotification('❌ No hay productos disponibles', 'error');
+                return;
+            }
+            
+            let productSelect = 'Selecciona un producto:\n';
+            products.forEach((p, i) => {
+                productSelect += `${i + 1}. ${p.name} - ${p.price}\n`;
+            });
+            
+            const selection = prompt(productSelect + '\nNúmero del producto:');
+            if (!selection) return;
+            
+            const selectedProduct = products[parseInt(selection) - 1];
+            const { data: config } = await supabase.from('config').select('api_key').eq('id', 1).single();
+            
+            const { error } = await supabase.from('orders').insert({
+                player_name: player,
+                product_name: selectedProduct.command,
+                api_key: config.api_key
+            });
+            
+            if (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            } else {
+                showNotification('✅ Orden creada. El plugin la recibirá en ~10 seg.');
+                loadAllOrders();
+                loadDashboard();
+            }
+        }
+
+        // Eliminar Orden
+        async function deleteOrder(id) {
+            if (!confirm('¿Eliminar esta orden?')) return;
+            const { error } = await supabase.from('orders').delete().eq('id', id);
+            if (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            } else {
+                showNotification('✅ Orden eliminada');
+                loadAllOrders();
+                loadDashboard();
+            }
+        }
+
+        // Eliminar Producto
+        async function deleteProduct(id) {
+            if (!confirm('¿Eliminar este producto?')) return;
+            const { error } = await supabase.from('products').delete().eq('id', id);
+            if (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            } else {
+                showNotification('✅ Producto eliminado');
+                loadProducts();
+                loadDashboard();
+            }
+        }
+
+        // Cargar Gráficos
+        async function loadCharts() {
+            // Gráfico de Ventas
+            const ctx1 = document.getElementById('salesChart').getContext('2d');
+            if (salesChart) salesChart.destroy();
+            
+            const { data: orders } = await supabase.from('orders').select('created_at');
+            const last7Days = {};
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+                last7Days[dateStr] = 0;
+            }
+            if (orders) {
+                orders.forEach(order => {
+                    const date = new Date(order.created_at);
+                    const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+                    if (last7Days[dateStr] !== undefined) last7Days[dateStr]++;
+                });
+            }
+            
+            salesChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(last7Days),
+                    datasets: [{
+                        label: 'Órdenes',
+                        data: Object.values(last7Days),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de Productos
+            const ctx2 = document.getElementById('productsChart').getContext('2d');
+            if (productsChart) productsChart.destroy();
+            
+            const { data: products } = await supabase.from('products').select('name');
+            const productCount = {};
+            if (products) {
+                products.forEach(p => {
+                    productCount[p.name] = (productCount[p.name] || 0) + 1;
+                });
+            }
+            
+            productsChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(productCount).slice(0, 5),
+                    datasets: [{
+                        data: Object.values(productCount).slice(0, 5),
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        function logout() {
+            showNotification('👋 Sesión cerrada (demo)');
+        }
+
+        // Inicializar
+        updateDate();
+        loadDashboard();
+        loadApiKey();
+        
+        // Auto-refresh cada 30 segundos
+        setInterval(() => {
+            loadDashboard();
+            document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
+        }, 30000);
+    </script>
+</body>
+</html>
